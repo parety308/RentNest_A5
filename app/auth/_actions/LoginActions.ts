@@ -1,44 +1,72 @@
-'use server'
+"use server"
+
 import { cookies } from "next/headers"
 
 type LoginState = {
-    "success": boolean,
-    "statusCode": number,
-    "message": string,
-    data: {
+    success: boolean,
+    statusCode: number,
+    message: string,
+    data?: {
         accessToken: string,
         refreshToken: string
     }
-
 }
-export const LoginAction = async (prevState: LoginState, formData: FormData) => {
-    // console.log(formData)  
+
+export const LoginAction = async (
+    prevState: LoginState,
+    formData: FormData
+) => {
+
     const email = formData.get("email");
     const password = formData.get("password");
-    const payload = { email, password };
-    const res = await fetch(`${process.env.BACKEND_URL}/api/auth/login`,
+
+    const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
         {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
             },
-            body: JSON.stringify(payload)
+            body:JSON.stringify({
+                email,
+                password
+            })
         }
-    )
-    const result= await res.json();
-    if (result.success) {
-        const cookieStore = await cookies()
-        cookieStore.set("accessToken", result.data.accessToken, {
-            httpOnly: true,
-            maxAge: 60 * 60 * 24,
-            sameSite: 'lax'
-        })
-        cookieStore.set("refreshToken", result.data.refreshToken, {
-            httpOnly: true,
-            maxAge: 60 * 60 * 24,
-            sameSite: 'lax'
-        })
+    );
+
+    const result = await res.json();
+
+
+    if(result.success){
+
+        const cookieStore = await cookies();
+
+        cookieStore.set(
+            "accessToken",
+            result.data.accessToken,
+            {
+                httpOnly:true,
+                secure:false,
+                sameSite:"lax",
+                maxAge:60 * 60 * 24,
+                path:"/"
+            }
+        );
+
+
+        cookieStore.set(
+            "refreshToken",
+            result.data.refreshToken,
+            {
+                httpOnly:true,
+                secure:false,
+                sameSite:"lax",
+                maxAge:60 * 60 * 24,
+                path:"/"
+            }
+        );
     }
-    // console.log(result);
-    return result
+
+
+    return result;
 }

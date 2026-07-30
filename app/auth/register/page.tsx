@@ -1,7 +1,5 @@
 
 import { Logo } from "@/app/shared/Logo";
-import { Card } from "@/components/ui/card";
-import Link from "next/link";
 import RegisterForm from "../_component/RegisterForm";
 
 

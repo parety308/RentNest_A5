@@ -26,7 +26,6 @@ const LoginForm = () => {
         <div>
             <form action={action}>
                 <Card className="p-6 w-100">
-
                     <Label htmlFor="email">Email</Label>
                     <Input id='email' placeholder="you@exapmle.com" name="email" type="email" required />
                     <Label htmlFor="password">Password</Label>

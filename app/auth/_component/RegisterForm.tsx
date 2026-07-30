@@ -48,7 +48,7 @@ const RegisterForm = () => {
 
                     {/* Role */}
                     <div className="space-y-2">
-                        <h3 className="font-semibold">I'm joining as</h3>
+                        <h3 className="font-semibold">I am joining as</h3>
 
                         <input type="hidden" name="role" value={role} />
 
@@ -59,8 +59,8 @@ const RegisterForm = () => {
                                 type="button"
                                 onClick={() => setRole("TENANT")}
                                 className={`relative rounded-xl border-2 p-6 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${role === "TENANT"
-                                        ? "border-green-600 bg-green-50"
-                                        : "border-gray-200 bg-white"
+                                    ? "border-green-600 bg-green-50"
+                                    : "border-gray-200 bg-white"
                                     }`}
                             >
                                 {role === "TENANT" && (
@@ -71,7 +71,7 @@ const RegisterForm = () => {
                                     <KeyRound className="h-7 w-7 text-white" />
                                 </div>
 
-                                <h4 className="font-semibold text-lg">I'm Renting</h4>
+                                <h4 className="font-semibold text-lg">I am Renting</h4>
 
                                 <p className="mt-2 text-sm text-muted-foreground leading-6">
                                     Search homes, send rental requests, pay rent online, and manage
@@ -84,8 +84,8 @@ const RegisterForm = () => {
                                 type="button"
                                 onClick={() => setRole("LANDLORD")}
                                 className={`relative rounded-xl border-2 p-6 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${role === "LANDLORD"
-                                        ? "border-green-600 bg-green-50"
-                                        : "border-gray-200 bg-white"
+                                    ? "border-green-600 bg-green-50"
+                                    : "border-gray-200 bg-white"
                                     }`}
                             >
                                 {role === "LANDLORD" && (
@@ -96,7 +96,7 @@ const RegisterForm = () => {
                                     <Home className="h-7 w-7 text-slate-600" />
                                 </div>
 
-                                <h4 className="font-semibold text-lg">I'm Listing</h4>
+                                <h4 className="font-semibold text-lg">I am Listing</h4>
 
                                 <p className="mt-2 text-sm text-muted-foreground leading-6">
                                     Publish properties, review applications, approve tenants, and

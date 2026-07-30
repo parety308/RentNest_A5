@@ -33,7 +33,7 @@ export const RegisterAction = async (prevState: RegisterState, formData: FormDat
     const fullName = `${firstname} ${lastname}`.trim();
     const payload = { name: fullName, email, password, role };
     // console.log({ payload });
-    const res = await fetch(`${process.env.BACKEND_URL}/api/auth/register`,
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`,
         {
             method: "POST",
             headers: {
