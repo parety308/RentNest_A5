@@ -9,10 +9,13 @@ import PropertyCard from "@/app/properties/_component/PropertyCard";
 import { Property } from "@/types/property";
 
 
-export default async function FeaturedProperties() {
-    const properties = await getProperties();
-    const featured = properties.filter((property: Property) => property.featured).slice(0, 6);
 
+export default async function FeaturedProperties() {
+    const { data: properties } = await getProperties({
+        limit: "all",
+    });
+
+    const featured = properties.filter((property: Property) => property.featured).slice(0, 6);
     return (
         <section className="py-24">
             <div className="container mx-auto max-w-7xl px-6">
