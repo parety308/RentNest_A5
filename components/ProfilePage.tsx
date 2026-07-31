@@ -18,7 +18,7 @@ export default function ProfilePage({ user }: ProfilePageProps) {
       <div className="flex flex-col items-center gap-5 sm:flex-row">
         <Avatar className="h-24 w-24 border-4 border-background shadow-lg">
           <AvatarFallback className="text-3xl font-bold">
-            {user.name
+            {user?.name
               .split(" ")
               .map((n) => n[0])
               .join("")
@@ -27,17 +27,17 @@ export default function ProfilePage({ user }: ProfilePageProps) {
         </Avatar>
 
         <div className="flex-1 text-center sm:text-left">
-          <h2 className="text-3xl font-bold">{user.name}</h2>
-          <p className="text-muted-foreground mt-1">{user.email}</p>
+          <h2 className="text-3xl font-bold">{user?.name}</h2>
+          <p className="text-muted-foreground mt-1">{user?.email}</p>
 
           <div className="mt-4 flex flex-wrap justify-center gap-2 sm:justify-start">
-            <Badge className="px-3 py-1">{user.role}</Badge>
+            <Badge className="px-3 py-1">{user?.role}</Badge>
 
             <Badge
-              variant={user.isBanned ? "destructive" : "secondary"}
+              variant={user?.isBanned ? "destructive" : "secondary"}
               className="px-3 py-1"
             >
-              {user.isBanned ? "Banned" : "Active"}
+              {user?.isBanned ? "Banned" : "Active"}
             </Badge>
           </div>
         </div>
@@ -50,14 +50,14 @@ export default function ProfilePage({ user }: ProfilePageProps) {
         <Card className="shadow-sm">
           <CardContent className="p-5">
             <p className="text-sm text-muted-foreground">User ID</p>
-            <p className="mt-2 font-medium break-all">{user.id}</p>
+            <p className="mt-2 font-medium break-all">{user?.id}</p>
           </CardContent>
         </Card>
 
         <Card className="shadow-sm">
           <CardContent className="p-5">
             <p className="text-sm text-muted-foreground">Role</p>
-            <p className="mt-2 font-semibold">{user.role}</p>
+            <p className="mt-2 font-semibold">{user?.role}</p>
           </CardContent>
         </Card>
 
@@ -65,7 +65,7 @@ export default function ProfilePage({ user }: ProfilePageProps) {
           <CardContent className="p-5">
             <p className="text-sm text-muted-foreground">Member Since</p>
             <p className="mt-2 font-medium">
-              {new Date(user.createdAt).toLocaleDateString()}
+              {new Date(user?.createdAt).toLocaleDateString()}
             </p>
           </CardContent>
         </Card>
@@ -74,7 +74,7 @@ export default function ProfilePage({ user }: ProfilePageProps) {
           <CardContent className="p-5">
             <p className="text-sm text-muted-foreground">Last Updated</p>
             <p className="mt-2 font-medium">
-              {new Date(user.updatedAt).toLocaleDateString()}
+              {new Date(user?.updatedAt).toLocaleDateString()}
             </p>
           </CardContent>
         </Card>

@@ -1,21 +1,65 @@
-'use client'
+"use client";
 
-import { Search } from 'lucide-react'
-import { Input } from '@/components/ui/input'
+import { Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 
 export default function SearchBar() {
-  return (
-    <div className="relative w-full">
-      <Input
-        type="text"
-        placeholder="Search city or neighborhood"
-        className="w-full pl-12 pr-4 py-2.5 rounded-md bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-500 focus:outline-none focus:border-emerald-900 focus:ring-2 focus:ring-emerald-100 transition-all"
-        aria-label="Search rentals"
-      />
-      <Search
-        className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none"
-        aria-hidden="true"
-      />
-    </div>
-  )
+
+    const router = useRouter();
+    const searchParams = useSearchParams();
+
+    const [search, setSearch] = useState(
+        searchParams.get("city") ?? ""
+    );
+
+
+    const handleSearch = (e?: React.MouseEvent) => {
+
+        e?.stopPropagation();
+
+        const params = new URLSearchParams(
+            searchParams.toString()
+        );
+
+
+        if (search.trim()) {
+            params.set("city", search);
+        } else {
+            params.delete("city");
+        }
+
+
+        router.push(`/properties?${params.toString()}`);
+    };
+
+
+    return (
+        <div 
+            className="relative w-full flex items-center"
+            onClick={(e)=>e.stopPropagation()}
+        >
+
+            <Input
+                type="text"
+                value={search}
+                onChange={(e)=>setSearch(e.target.value)}
+                placeholder="Search city or neighborhood"
+                className="w-full pl-4 pr-12 py-2.5 rounded-md bg-gray-50 border border-gray-200"
+            />
+
+
+            <Button
+                type="button"
+                onClick={handleSearch}
+                size="icon"
+                className="absolute right-1"
+            >
+                <Search className="w-4 h-3"/>
+            </Button>
+
+        </div>
+    );
 }

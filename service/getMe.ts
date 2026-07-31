@@ -21,6 +21,11 @@ export const getMe = async () => {
     const res = await fetch(url, {
         headers: {
             Cookie: `accessToken=${accessToken}`
+        },
+        cache: 'force-cache',
+        next: {
+            revalidate: 60 * 60 * 24,
+            tags: ['my-profile']
         }
     });
 

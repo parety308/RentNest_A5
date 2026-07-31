@@ -16,7 +16,6 @@ const LoginForm = () => {
         if (!state) return;
         if (state.success) {
             toast.success(state.message || 'User Logged in Successfully')
-            router.push('/')
         }
         if (!state.success) {
             toast.error(state.message || 'login Failed')

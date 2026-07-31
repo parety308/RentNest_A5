@@ -1,7 +1,8 @@
 "use server"
 
 import { cookies } from "next/headers"
-
+import jwt, { JwtPayload } from 'jsonwebtoken'
+import { redirect } from "next/navigation"
 type LoginState = {
     success: boolean,
     statusCode: number,
@@ -23,11 +24,11 @@ export const LoginAction = async (
     const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
         {
-            method:"POST",
-            headers:{
-                "Content-Type":"application/json"
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
             },
-            body:JSON.stringify({
+            body: JSON.stringify({
                 email,
                 password
             })
@@ -37,7 +38,7 @@ export const LoginAction = async (
     const result = await res.json();
 
 
-    if(result.success){
+    if (result.success) {
 
         const cookieStore = await cookies();
 
@@ -45,11 +46,11 @@ export const LoginAction = async (
             "accessToken",
             result.data.accessToken,
             {
-                httpOnly:true,
-                secure:false,
-                sameSite:"lax",
-                maxAge:60 * 60 * 24,
-                path:"/"
+                httpOnly: true,
+                secure: false,
+                sameSite: "lax",
+                maxAge: 60 * 60 * 24,
+                path: "/"
             }
         );
 
@@ -58,13 +59,18 @@ export const LoginAction = async (
             "refreshToken",
             result.data.refreshToken,
             {
-                httpOnly:true,
-                secure:false,
-                sameSite:"lax",
-                maxAge:60 * 60 * 24,
-                path:"/"
+                httpOnly: true,
+                secure: false,
+                sameSite: "lax",
+                maxAge: 60 * 60 * 24,
+                path: "/"
             }
         );
+        const decodedToken = jwt.decode(result.data.accessToken) as JwtPayload;
+        // if(decodedToken.role)
+        if (decodedToken?.role as string) {
+            redirect(`/dashboard/${decodedToken.role.toLowerCase()}`)
+        }
     }
 
 

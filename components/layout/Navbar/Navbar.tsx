@@ -1,9 +1,9 @@
 'use client'
 
-import {  useState } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Moon, Menu, User, LogOut } from 'lucide-react'
+import { Moon, Menu, User, LogOut, ArrowBigRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import SearchBar from './search-bar'
 import MobileMenu from './mobile-menu'
@@ -14,6 +14,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { MdDashboard } from 'react-icons/md'
 import { CgProfile } from 'react-icons/cg'
 import Image from 'next/image'
+import logout from '@/service/logout'
+import { toast } from 'sonner'
 
 const NAV_LINKS = [
   { href: '/properties', label: 'Browses' }
@@ -38,6 +40,11 @@ export default function Navbar({ user }: NavbarProps) {
     } else {
       document.documentElement.classList.remove('dark')
     }
+  }
+  const handleLogout = async () => {
+    await logout();
+    router.push('/auth/login');
+    toast('User logged Out')
   }
 
   return (
@@ -88,28 +95,29 @@ export default function Navbar({ user }: NavbarProps) {
             <Popover>
               <PopoverTrigger>
                 <span className="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-md hover:bg-accent">
-                 {userData?.profileImage?<Image src={userData?.profileImage} alt='profileImage'/> :<User className="h-5 w-5" />}
+                  {userData?.profileImage ? <Image src={userData?.profileImage} alt='profileImage' /> : <User className="h-5 w-5" />}
                 </span>
               </PopoverTrigger>
 
               <PopoverContent align="end" className="w-48 p-2">
-                <Button onClick={()=>router.push('/dashboard/profile')} variant="ghost" className="w-full justify-start">
+                <Button onClick={() => router.push('/dashboard/profile')} variant="ghost" className="w-full justify-start">
                   <CgProfile />  Profile
                 </Button>
 
-                <Button  onClick={()=>router.push(`/dashboard/${userData?.role.toLocaleLowerCase()}`)} variant="ghost" className="w-full justify-start">
+                <Button onClick={() => router.push(`/dashboard/${userData?.role.toLocaleLowerCase()}`)} variant="ghost" className="w-full justify-start">
                   <MdDashboard /> Dashboard
                 </Button>
 
                 <Button
+                  onClick={handleLogout}
                   variant="ghost"
                   className="w-full justify-start text-red-500"
                 >
                   <LogOut /> Logout
                 </Button>
               </PopoverContent>
-            </Popover> : <div><Button><Link href={'/auth/login'}>Login</Link></Button>
-              <Button onClick={() => router.push('/auth/login')}>Get Started</Button></div>}
+            </Popover> : <div className='flex gap-2'><Button><Link href={'/auth/login'}>Login</Link></Button>
+              <Button onClick={() => router.push('/auth/login')}>Get Started <ArrowBigRight /></Button></div>}
 
 
 
