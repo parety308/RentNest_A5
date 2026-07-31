@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import {  useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { Moon, Menu, User, LogOut } from 'lucide-react'
@@ -10,10 +10,10 @@ import MobileMenu from './mobile-menu'
 import { Logo } from '../../../app/shared/Logo'
 
 import { UserResponse } from '@/types/user'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { MdDashboard } from 'react-icons/md'
 import { CgProfile } from 'react-icons/cg'
+import Image from 'next/image'
 
 const NAV_LINKS = [
   { href: '/properties', label: 'Browses' }
@@ -88,7 +88,7 @@ export default function Navbar({ user }: NavbarProps) {
             <Popover>
               <PopoverTrigger>
                 <span className="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-md hover:bg-accent">
-                  <User className="h-5 w-5" />
+                 {userData?.profileImage?<Image src={userData?.profileImage} alt='profileImage'/> :<User className="h-5 w-5" />}
                 </span>
               </PopoverTrigger>
 
@@ -97,7 +97,7 @@ export default function Navbar({ user }: NavbarProps) {
                   <CgProfile />  Profile
                 </Button>
 
-                <Button variant="ghost" className="w-full justify-start">
+                <Button  onClick={()=>router.push(`/dashboard/${userData?.role.toLocaleLowerCase()}`)} variant="ghost" className="w-full justify-start">
                   <MdDashboard /> Dashboard
                 </Button>
 
