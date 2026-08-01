@@ -6,7 +6,7 @@ import {
     FaInstagram,
     FaXTwitter,
 } from "react-icons/fa6";
-import { Logo } from "@/app/shared/Logo";
+import { Logo } from "@/components/shared/Logo";
 import { Mail, MapPin, Phone } from "lucide-react";
 import { LiaLinkedin } from "react-icons/lia";
 

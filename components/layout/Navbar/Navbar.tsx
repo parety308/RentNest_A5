@@ -7,7 +7,7 @@ import { Moon, Menu, User, LogOut, ArrowBigRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import SearchBar from './search-bar'
 import MobileMenu from './mobile-menu'
-import { Logo } from '../../../app/shared/Logo'
+import { Logo } from '../../shared/Logo'
 
 import { UserResponse } from '@/types/user'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'

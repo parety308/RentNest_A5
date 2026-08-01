@@ -4,9 +4,9 @@ export type User = {
   email: string;
   profileImage?: string;
   role: "ADMIN" | "LANDLORD" | "TENANT";
-  isBanned: boolean;
-  createdAt: string;
-  updatedAt: string;
+  isBanned?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 
