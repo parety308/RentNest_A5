@@ -44,7 +44,7 @@ export interface IUpdatePropertyPayload {
 }
 
 export interface IUpdateRentalRequestPayload {
-    status: "APPROVED" | "REJECTED";
+    status: "APPROVED" | "REJECTED"| "ACTIVE" | "COMPLETED";
 }
 
 export interface ICategory {

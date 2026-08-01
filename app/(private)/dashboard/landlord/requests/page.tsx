@@ -19,11 +19,12 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { landlordService } from "@/service/landlordService";
 
 // Adjust to match your actual API base url / client setup
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "/api/v1";
 
-type RequestStatus = "PENDING" | "APPROVED" | "REJECTED";
+type RequestStatus = "PENDING" | "APPROVED" | "REJECTED" | "ACTIVE" | "COMPLETED";
 
 interface RentalRequest {
     id: string;
@@ -48,7 +49,9 @@ interface RentalRequest {
 
 const statusStyles: Record<RequestStatus, string> = {
     PENDING: "bg-yellow-100 text-yellow-700",
-    APPROVED: "bg-green-100 text-green-700",
+    APPROVED: "bg-blue-100 text-blue-700",
+    ACTIVE: "bg-green-100 text-green-700",
+    COMPLETED: "bg-gray-100 text-gray-700",
     REJECTED: "bg-red-100 text-red-700",
 };
 
@@ -140,13 +143,39 @@ const LandlordRequest = () => {
             ? requests
             : requests.filter((request) => request.status === filter);
 
-    const filters: { label: string; value: "ALL" | RequestStatus }[] = [
+    const filters = [
         { label: "All", value: "ALL" },
         { label: "Pending", value: "PENDING" },
         { label: "Approved", value: "APPROVED" },
+        { label: "Active", value: "ACTIVE" },
+        { label: "Completed", value: "COMPLETED" },
         { label: "Rejected", value: "REJECTED" },
     ];
 
+    const handleComplete = async (id: string) => {
+        setActioningId(id);
+        setError(null);
+
+        try {
+            await landlordService.updateRentalRequest(id, {
+                status: "COMPLETED",
+            });
+
+            setRequests((prev) =>
+                prev.map((item) =>
+                    item.id === id
+                        ? { ...item, status: "COMPLETED" }
+                        : item
+                )
+            );
+        } catch (err) {
+            setError(
+                err instanceof Error ? err.message : "Something went wrong"
+            );
+        } finally {
+            setActioningId(null);
+        }
+    };
     return (
         <div className="space-y-8">
             {/* Header */}
@@ -177,7 +206,7 @@ const LandlordRequest = () => {
                             variant={
                                 filter === item.value ? "default" : "outline"
                             }
-                            onClick={() => setFilter(item.value)}
+                            onClick={() => setFilter(item.value as "ALL" | RequestStatus)}
                         >
                             {item.label}
                         </Button>
@@ -225,9 +254,8 @@ const LandlordRequest = () => {
                                 </div>
 
                                 <span
-                                    className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium ${
-                                        statusStyles[request.status]
-                                    }`}
+                                    className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium ${statusStyles[request.status]
+                                        }`}
                                 >
                                     {request.status}
                                 </span>
@@ -295,6 +323,34 @@ const LandlordRequest = () => {
                                                 <CheckCircle2 className="mr-1.5 h-4 w-4" />
                                             )}
                                             Approve
+                                        </Button>
+                                    </div>
+                                )}
+                                {(request.status === "ACTIVE") && (
+                                    <div className="flex justify-end pt-2">
+                                        <Button
+                                            size="sm"
+                                            disabled={
+                                                request.status !== "ACTIVE" ||
+                                                actioningId === request.id
+                                            }
+                                            onClick={() => handleComplete(request.id)}
+                                        >
+                                            {actioningId === request.id ? (
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            ) : (
+                                                <CheckCircle2 className="mr-2 h-4 w-4" />
+                                            )}
+
+                                            Complete Rental
+                                        </Button>
+                                    </div>
+                                )}
+                                {request.status === "COMPLETED" && (
+                                    <div className="flex justify-end pt-2">
+                                        <Button size="sm" disabled>
+                                            <CheckCircle2 className="mr-2 h-4 w-4" />
+                                            Rental Completed
                                         </Button>
                                     </div>
                                 )}

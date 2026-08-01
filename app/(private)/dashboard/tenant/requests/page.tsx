@@ -5,6 +5,8 @@ import { toast } from "sonner";
 
 import { RentalRequest, RequestStatus } from "@/types/rental.type";
 import { getMyPendingRequests } from "@/service/tenant.service";
+import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 const statusStyles: Record<RequestStatus, string> = {
     PENDING: "bg-yellow-100 text-yellow-700",
@@ -17,7 +19,7 @@ const statusStyles: Record<RequestStatus, string> = {
 const MyRentalRequests = () => {
     const [requests, setRequests] = useState<RentalRequest[]>([]);
     const [loading, setLoading] = useState(true);
-
+    const router = useRouter();
     useEffect(() => {
         (async () => {
             try {
@@ -61,11 +63,23 @@ const MyRentalRequests = () => {
                                 <p className="text-sm text-muted-foreground mt-1 italic">{req.message}</p>
                             )}
                         </div>
-                        <span
-                            className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusStyles[req.status]}`}
-                        >
-                            {req.status}
-                        </span>
+                        <div className="flex items-center gap-2">
+                            <span
+                                className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusStyles[req.status]}`}
+                            >
+                                {req.status}
+                            </span>
+
+                            {req.status === "APPROVED" && (
+                                <Button
+                                    onClick={() =>
+                                        router.push(`/dashboard/tenant/payment/${req.id}`)
+                                    }
+                                >
+                                    Pay
+                                </Button>
+                            )}
+                        </div>
                     </div>
                 ))}
             </div>
