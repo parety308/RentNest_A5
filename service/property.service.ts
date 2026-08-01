@@ -45,10 +45,3 @@ export async function getPropertyById(
     }
 }
 
-export async function CreateRentalRequest() {
-try {
-    const response = await apiClient(`/rentals`);
-} catch (error) {
-    
-}
-}

@@ -9,11 +9,8 @@ export async function proxy(request: NextRequest) {
     const pathname = request.nextUrl.pathname;
 
 
-    const isPublicRoute = pathname === "/" || pathname.startsWith("/properties");
-
-    const isAuthRoute = AUTH_ROUTES.some(
-        (route) => pathname === route || pathname.startsWith(route + "/")
-    );
+    const isPublicRoute = PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith(route + "/"));
+    const isAuthRoute = AUTH_ROUTES.some((route) => pathname === route || pathname.startsWith(route + "/"));
 
     if (isPublicRoute) {
         return NextResponse.next();
@@ -49,15 +46,15 @@ export async function proxy(request: NextRequest) {
 
                 const response = NextResponse.next();
 
-                cookieStore.set(
+                response.cookies.set(
                     "accessToken",
                     result.data.accessToken,
                     {
                         httpOnly: true,
-                        secure: false,
+                        secure: process.env.NODE_ENV === "production",
                         sameSite: "lax",
                         maxAge: 60 * 60 * 24,
-                        path: "/"
+                        path: "/",
                     }
                 );
                 // Continue request with refreshed cookie
@@ -102,39 +99,25 @@ export async function proxy(request: NextRequest) {
             return NextResponse.next();
         }
 
-        return NextResponse.redirect(
-            new URL("/auth/login", request.url)
-        );
+        return NextResponse.redirect(new URL("/auth/login", request.url));
     }
 
     const role = decodedAccessToken.data?.role;
 
     if (isAuthRoute) {
-        return NextResponse.redirect(
-            new URL(`/dashboard/${role.toLowerCase()}`, request.url)
-        );
+        return NextResponse.redirect(new URL(`/dashboard/${role.toLowerCase()}`, request.url));
     }
 
 
     if (pathname.startsWith("/dashboard/admin") && role !== "ADMIN") {
-        return NextResponse.redirect(
-            new URL("/not-found", request.url)
-        );
+        return NextResponse.redirect(new URL("/not-found", request.url));
     }
 
-    if (
-        pathname.startsWith("/dashboard/tenant") &&
-        role !== "TENANT"
-    ) {
-        return NextResponse.redirect(
-            new URL("/not-found", request.url)
-        );
+    if (pathname.startsWith("/dashboard/tenant") && role !== "TENANT") {
+        return NextResponse.redirect(new URL("/not-found", request.url));
     }
 
-    if (
-        pathname.startsWith("/dashboard/landlord") &&
-        role !== "LANDLORD"
-    ) {
+    if (pathname.startsWith("/dashboard/landlord") && role !== "LANDLORD") {
         return NextResponse.redirect(
             new URL("/not-found", request.url)
         );

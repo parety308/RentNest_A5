@@ -2,6 +2,10 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Property } from "@/types/property";
+import { CreateRentalRequest } from "@/service/rental.service";
+import { getMe } from "@/service/getMe";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface Props {
     property: Property;
@@ -15,9 +19,29 @@ function formatPrice(price: number) {
 }
 
 export default function BookingCard({ property, mobile = false }: Props) {
-    const handleRent = () => {
-        console.log("click")
-    }
+    const router = useRouter();
+    const handleRent = async () => {
+        try {
+            const user = await getMe();
+
+            if (!user?.success) {
+                router.push("/auth/login");
+                return;
+            }
+
+            await CreateRentalRequest({
+                propertyId: property.id,
+                message: "I am interested in renting this property.",
+            });
+            toast.success("Rental request sent successfully!", {
+                description:
+                    "The landlord will review your rental request.",
+            });
+            // console.log("Rental request:", result);
+        } catch (error) {
+            console.error("Rental error:", error);
+        }
+    };
     if (mobile) {
         return (
             <div className="flex items-center justify-between gap-4">
@@ -34,7 +58,7 @@ export default function BookingCard({ property, mobile = false }: Props) {
                     </p>
                 </div>
 
-                <Button onClick={handleRent}  className="h-11 px-8" disabled={!property.available}>
+                <Button onClick={handleRent} className="h-11 px-8" disabled={!property.available}>
                     Rent Now
                 </Button>
             </div>

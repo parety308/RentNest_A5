@@ -4,10 +4,9 @@ export async function apiClient(
   endpoint: string,
   options?: RequestInit
 ) {
-  //     console.log("API_URL:", API_URL);
-  // console.log("URL:", `${API_URL}${endpoint}`);
   const response = await fetch(`${API_URL}${endpoint}`, {
     ...options,
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
       ...options?.headers,
