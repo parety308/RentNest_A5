@@ -3,20 +3,10 @@ import { Heart, MapPin, Star } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import Link from "next/link";
+import { Property } from "@/types/property";
 
-interface Property {
-  id: string;
-  title: string;
-  location: string;
-  price: number;
-  bedrooms: number;
-  bathrooms: number;
-  sqft: number;
-  images: string[];
-  rating?: number;
-  reviewCount?: number;
-  available?: boolean;
-}
+
 
 interface PropertyCardProps {
   property: Property;
@@ -105,9 +95,11 @@ const PropertyCard = ({ property }: PropertyCardProps) => {
               </span>
             </div>
 
-            <Button>
-              View
-            </Button>
+            <Link href={`/properties/${property.id}`}>
+              <Button className="w-full">
+                View Details
+              </Button>
+            </Link>
           </div>
         </div>
       </CardContent>

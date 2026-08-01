@@ -1,7 +1,6 @@
 import { Property, PropertyQuery } from "@/types/property";
 import { apiClient } from "./client";
 
-
 export interface PropertyResponse {
     data: Property[];
     meta: {
@@ -12,41 +11,44 @@ export interface PropertyResponse {
     };
 }
 
-
-
 export async function getProperties(
     query?: PropertyQuery
 ): Promise<PropertyResponse> {
-
-
     const params = new URLSearchParams();
 
-
     Object.entries(query || {}).forEach(([key, value]) => {
-
-        if (
-            value !== undefined &&
-            value !== null &&
-            value !== ""
-        ) {
+        if (value !== undefined && value !== null && value !== "") {
             params.append(key, String(value));
         }
-
     });
-
-
 
     const url = params.toString()
         ? `/properties?${params.toString()}`
         : "/properties";
 
-
-
     const response = await apiClient(url);
 
-
-
-    // remove API wrapper
     return response.data;
+}
 
+export async function getPropertyById(
+    id: string
+): Promise<Property | null> {
+    try {
+        const response = await apiClient(`/properties/${id}`);
+
+        return response.data;
+    } catch (error) {
+
+        console.error(`Failed to fetch property ${id}:`, error);
+        return null;
+    }
+}
+
+export async function CreateRentalRequest() {
+try {
+    const response = await apiClient(`/rentals`);
+} catch (error) {
+    
+}
 }

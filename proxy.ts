@@ -1,72 +1,150 @@
-import { NextResponse } from 'next/server'
-import { NextRequest } from 'next/server'
-import { JwtPayload } from 'jsonwebtoken'
-import { jwtUtils } from './utils/jwt';
-import { getNewAccessToken } from './service/refreshToken';
-import { cookies } from 'next/headers';
+import { NextRequest, NextResponse } from "next/server";
+import { jwtUtils } from "./utils/jwt";
+import { getNewAccessToken } from "./service/refreshToken";
 
-const AUTH_ROUTES = ['/auth/login', '/auth/register'];
-const PUBLIC_ROUTES = ['/', '/properties']
+const AUTH_ROUTES = ["/auth/login", "/auth/register"];
+const PUBLIC_ROUTES = ["/", "/properties"];
+
 export async function proxy(request: NextRequest) {
-    const pathName = request.nextUrl.pathname;
-    const cookieStore = await cookies();
-    const accessToken = cookieStore.get('accessToken')?.value;
-    // const accessToken = request.cookies.get('accessToken')?.value;
-    const refreshToken = request.cookies.get('refreshToken')?.value;
-    const decodedAccessToken = accessToken ? jwtUtils.verifyToken(accessToken, process.env.JWT_ACCESS_TOKEN_SECRET as string) as JwtPayload : null;
-    const decodedRefreshToken = accessToken ? jwtUtils.verifyToken(refreshToken as string, process.env.JWT_REFRESH_TOKEN_SECRET as string) as JwtPayload : null;
+    const pathname = request.nextUrl.pathname;
 
-    if (!decodedAccessToken?.success && decodedRefreshToken?.success) {
-        const result = await getNewAccessToken();
-        if (result.success) {
-            const newAccessToken = result.data.accessToken;
-            cookieStore.set(
-                "accessToken",
-                newAccessToken,
-                {
-                    httpOnly: true,
-                    secure: false,
-                    sameSite: "lax",
-                    maxAge: 60 * 60 * 24,
-                    path: "/"
+
+    const isPublicRoute = pathname === "/" || pathname.startsWith("/properties");
+
+    const isAuthRoute = AUTH_ROUTES.some(
+        (route) => pathname === route || pathname.startsWith(route + "/")
+    );
+
+    if (isPublicRoute) {
+        return NextResponse.next();
+    }
+
+    let accessToken = request.cookies.get("accessToken")?.value;
+    const refreshToken = request.cookies.get("refreshToken")?.value;
+
+    let decodedAccessToken = accessToken
+        ? jwtUtils.verifyToken(
+            accessToken,
+            process.env.JWT_ACCESS_TOKEN_SECRET!
+        )
+        : null;
+
+
+    if (!decodedAccessToken?.success && refreshToken) {
+        const decodedRefreshToken = jwtUtils.verifyToken(
+            refreshToken,
+            process.env.JWT_REFRESH_TOKEN_SECRET!
+        );
+
+        if (decodedRefreshToken.success) {
+            const result = await getNewAccessToken();
+
+            if (result?.success) {
+                accessToken = result.data?.accessToken;
+
+                decodedAccessToken = jwtUtils.verifyToken(
+                    accessToken as string,
+                    process.env.JWT_ACCESS_TOKEN_SECRET!
+                );
+
+                const response = NextResponse.next();
+
+                cookieStore.set(
+                    "accessToken",
+                    result.data.accessToken,
+                    {
+                        httpOnly: true,
+                        secure: false,
+                        sameSite: "lax",
+                        maxAge: 60 * 60 * 24,
+                        path: "/"
+                    }
+                );
+                // Continue request with refreshed cookie
+                if (decodedAccessToken.success) {
+                    const role = decodedAccessToken.data?.role;
+
+                    if (
+                        pathname.startsWith("/dashboard/admin") &&
+                        role !== "ADMIN"
+                    ) {
+                        return NextResponse.redirect(
+                            new URL("/not-found", request.url)
+                        );
+                    }
+
+                    if (
+                        pathname.startsWith("/dashboard/tenant") &&
+                        role !== "TENANT"
+                    ) {
+                        return NextResponse.redirect(
+                            new URL("/not-found", request.url)
+                        );
+                    }
+
+                    if (
+                        pathname.startsWith("/dashboard/landlord") &&
+                        role !== "LANDLORD"
+                    ) {
+                        return NextResponse.redirect(
+                            new URL("/not-found", request.url)
+                        );
+                    }
+
+                    return response;
                 }
-            );
+            }
         }
     }
-    let userRole = null;
 
     if (!decodedAccessToken?.success) {
-        return NextResponse.redirect(new URL('/auth/login', request.url));
+        if (isAuthRoute) {
+            return NextResponse.next();
+        }
+
+        return NextResponse.redirect(
+            new URL("/auth/login", request.url)
+        );
     }
 
-    if (decodedAccessToken?.success) {
-        userRole = decodedAccessToken?.data.role
-    }
-    if (accessToken && AUTH_ROUTES.includes(pathName)) {
-        return NextResponse.redirect(new URL(`/dashboard/${userRole.toLowerCase()}`, request.url));
+    const role = decodedAccessToken.data?.role;
+
+    if (isAuthRoute) {
+        return NextResponse.redirect(
+            new URL(`/dashboard/${role.toLowerCase()}`, request.url)
+        );
     }
 
-    const isPublicRoute = PUBLIC_ROUTES.some((route) => pathName === route || pathName.startsWith(route + "/"));
-    const isAuthRoute = AUTH_ROUTES.some((route) => pathName === route || pathName.startsWith(route + "/"));
-    if (!accessToken && !isPublicRoute && !isAuthRoute) {
-        return NextResponse.redirect(new URL(`/auth/login`, request.url));
+
+    if (pathname.startsWith("/dashboard/admin") && role !== "ADMIN") {
+        return NextResponse.redirect(
+            new URL("/not-found", request.url)
+        );
     }
 
-    if (pathName.startsWith('/dashboard/tenant') && userRole !== 'TENANT') {
-        return NextResponse.redirect(new URL('/not-found', request.url));
+    if (
+        pathname.startsWith("/dashboard/tenant") &&
+        role !== "TENANT"
+    ) {
+        return NextResponse.redirect(
+            new URL("/not-found", request.url)
+        );
     }
-    else if (pathName.startsWith('/dashboard/admin') && userRole !== 'ADMIN') {
-        return NextResponse.redirect(new URL('/not-found', request.url));
+
+    if (
+        pathname.startsWith("/dashboard/landlord") &&
+        role !== "LANDLORD"
+    ) {
+        return NextResponse.redirect(
+            new URL("/not-found", request.url)
+        );
     }
-    else if (pathName.startsWith('/dashboard/landlord') && userRole !== 'LANDLORD') {
-        return NextResponse.redirect(new URL('/not-found', request.url));
-    }
+
     return NextResponse.next();
 }
 
-// Alternatively, you can use a default export:
-// export default function proxy(request: NextRequest) { ... }
-
 export const config = {
-    matcher: '/((?!api|_next/static|favicon.ico|_next/image|.*\\.png$).*)',
-}
+    matcher: [
+        "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|gif|svg|webp)$).*)",
+    ],
+};

@@ -8,13 +8,13 @@ export interface Property {
 
   city: string;
   state: string;
-  neighborhood: string;
-  location: string;
+  neighborhood?: string;
+  location?: string;
   address: string;
 
-  bedrooms: number;
-  bathrooms: number;
-  sqft: number;
+  bedrooms?: number | null;
+  bathrooms?: number | null;
+  sqft?: number | null;
 
   images: string[];
   amenities: string[];
@@ -25,7 +25,7 @@ export interface Property {
   rating: number;
   reviewCount: number;
 
-  availableFrom: string;
+  availableFrom?: string | null;
 
   categoryId: string;
   landlordId: string;
@@ -56,5 +56,13 @@ export type PropertyQuery = {
   maxPrice?: string;
   sort?: string;
   page?: number;
-  limit?: number|string;
+  limit?: number | string;
 };
+
+export interface Review {
+  id: string;
+  user: string;
+  avatar: string;
+  rating: number;
+  comment: string;
+}
