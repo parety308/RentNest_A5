@@ -37,7 +37,6 @@ export default function BookingCard({ property, mobile = false }: Props) {
                 description:
                     "The landlord will review your rental request.",
             });
-            // console.log("Rental request:", result);
         } catch (error) {
             console.error("Rental error:", error);
         }
