@@ -11,7 +11,6 @@ import {
     Home,
     LogOut,
     Menu,
-    MessageSquare,
     Settings,
     Users,
     X,
@@ -162,10 +161,9 @@ export default function DashboardShell({
                     border-r bg-background
                     transition-transform duration-300
                     lg:translate-x-0
-                    ${
-                        sidebarOpen
-                            ? "translate-x-0"
-                            : "-translate-x-full"
+                    ${sidebarOpen
+                        ? "translate-x-0"
+                        : "-translate-x-full"
                     }
                 `}
             >
@@ -231,9 +229,7 @@ export default function DashboardShell({
                         const Icon = item.icon;
 
                         const isActive =
-                            pathname === item.href ||
-                            pathname.startsWith(item.href + "/");
-
+                            pathname === item.href
                         return (
                             <Link
                                 key={item.href}
@@ -243,10 +239,9 @@ export default function DashboardShell({
                                     flex items-center gap-3 rounded-lg
                                     px-3 py-2.5 text-sm font-medium
                                     transition-colors
-                                    ${
-                                        isActive
-                                            ? "bg-primary text-primary-foreground"
-                                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                    ${isActive
+                                        ? "bg-primary text-primary-foreground"
+                                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
                                     }
                                 `}
                             >
