@@ -1,11 +1,15 @@
 'use server'
-// import { cookies } from "next/headers"
+
+import { registerSchema } from "@/app/lib/validations/auth"
+
+
 
 type RegisterState = {
     success: boolean,
     statusCode: number,
     message: string,
-    data: {
+    errors?: Record<string, string[]>,
+    data?: {
         id: string,
         name: string,
         email: string,
@@ -14,36 +18,43 @@ type RegisterState = {
         createdAt: Date,
         updatedAt: Date
     }
-
 }
+
 export const RegisterAction = async (prevState: RegisterState, formData: FormData) => {
-    // console.log(formData)  
-    const firstname = formData.get('fname');
-    const lastname = formData.get('lname');
-    const email = formData.get("email");
-    const password = formData.get("password") as string;
-    const cpassword = formData.get("cpassword") as string;
-    const role = formData.get("role") as string;
-    if (password !== cpassword) {
+    const raw = {
+        fname: formData.get("fname"),
+        lname: formData.get("lname"),
+        email: formData.get("email"),
+        password: formData.get("password"),
+        cpassword: formData.get("cpassword"),
+        role: formData.get("role"),
+    };
+
+    const parsed = registerSchema.safeParse(raw);
+
+    if (!parsed.success) {
         return {
             success: false,
-            message: "Passwords do not match",
+            statusCode: 400,
+            message: "Please fix the errors below",
+            errors: parsed.error.flatten().fieldErrors,
         };
     }
-    const fullName = `${firstname} ${lastname}`.trim();
-    const payload = { name: fullName, email, password, role };
-    // console.log({ payload });
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`,
-        {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(payload)
-        }
-    )
-    const result = await res.json();
 
-    // console.log(result);
-    return result
+    const fullName = `${parsed.data.fname} ${parsed.data.lname}`.trim();
+    const payload = {
+        name: fullName,
+        email: parsed.data.email,
+        password: parsed.data.password,
+        role: parsed.data.role,
+    };
+
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    });
+
+    const result = await res.json();
+    return result;
 }

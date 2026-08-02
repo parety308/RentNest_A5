@@ -17,25 +17,22 @@ const RegisterForm = () => {
     const [role, setRole] = useState<"TENANT" | "LANDLORD">("TENANT");
     const [state, action, pending] = useActionState(RegisterAction, false);
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-        if (password !== confirmPassword) {
-            e.preventDefault();
-            toast.error("Passwords do not match");
-        }
-    };
     useEffect(() => {
         if (!state) return;
+
         if (state.success) {
-            toast.success(state.message || 'User Logged in Successfully')
-            router.push('/')
+            toast.success(state.message || 'Account created successfully');
+            router.push('/auth/login');
         }
-        if (!state.success) {
-            toast.error(state.message || 'login Failed')
+
+        if (!state.success && !state.errors) {
+            toast.error(state.message || 'Registration Failed');
         }
-    }, [state, router])
+    }, [state, router]);
+
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 max-w-140 mb-2 ">
-            <form action={action} onSubmit={handleSubmit} className="w-full">
+            <form action={action} className="w-full">
                 <Card className="rounded-xl shadow-xl border-0 p-5 space-y-2">
 
                     {/* Header */}
@@ -104,6 +101,10 @@ const RegisterForm = () => {
                                 </p>
                             </button>
                         </div>
+
+                        {state?.errors?.role && (
+                            <p className="text-sm text-red-600">{state.errors.role[0]}</p>
+                        )}
                     </div>
 
                     {/* Name */}
@@ -116,6 +117,9 @@ const RegisterForm = () => {
                                 placeholder="John"
                                 className="h-11"
                             />
+                            {state?.errors?.fname && (
+                                <p className="text-sm text-red-600">{state.errors.fname[0]}</p>
+                            )}
                         </div>
 
                         <div className="space-y-2">
@@ -126,6 +130,9 @@ const RegisterForm = () => {
                                 placeholder="Doe"
                                 className="h-11"
                             />
+                            {state?.errors?.lname && (
+                                <p className="text-sm text-red-600">{state.errors.lname[0]}</p>
+                            )}
                         </div>
                     </div>
 
@@ -138,8 +145,10 @@ const RegisterForm = () => {
                             type="email"
                             placeholder="you@example.com"
                             className="h-11"
-                            required
                         />
+                        {state?.errors?.email && (
+                            <p className="text-sm text-red-600">{state.errors.email[0]}</p>
+                        )}
                     </div>
 
                     {/* Password */}
@@ -154,6 +163,9 @@ const RegisterForm = () => {
                                 className="h-11"
                                 onChange={(e) => setPassword(e.target.value)}
                             />
+                            {state?.errors?.password && (
+                                <p className="text-sm text-red-600">{state.errors.password[0]}</p>
+                            )}
                         </div>
 
                         <div className="space-y-2">
@@ -166,10 +178,14 @@ const RegisterForm = () => {
                                 className="h-11"
                                 onChange={(e) => setConfirmPassword(e.target.value)}
                             />
+                            {state?.errors?.cpassword && (
+                                <p className="text-sm text-red-600">{state.errors.cpassword[0]}</p>
+                            )}
                         </div>
                     </div>
 
-                    {confirmPassword && password !== confirmPassword && (
+                    {/* Instant client-side hint before submit (server zod .refine is the source of truth) */}
+                    {confirmPassword && password !== confirmPassword && !state?.errors?.cpassword && (
                         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
                             Passwords do not match.
                         </div>
@@ -177,7 +193,7 @@ const RegisterForm = () => {
 
                     <Button
                         type="submit"
-                        disabled={pending || password !== confirmPassword}
+                        disabled={pending}
                         className="w-full h-11 rounded-xl text-base"
                     >
                         {pending ? "Creating Account..." : "Create Account"}

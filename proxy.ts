@@ -5,122 +5,102 @@ import { getNewAccessToken } from "./service/refreshToken";
 const AUTH_ROUTES = ["/auth/login", "/auth/register"];
 const PUBLIC_ROUTES = ["/", "/properties"];
 
+type Role = "ADMIN" | "TENANT" | "LANDLORD";
+
+function isPublicRoute(pathname: string) {
+    return PUBLIC_ROUTES.some(
+        (route) => pathname === route || pathname.startsWith(route + "/")
+    );
+}
+
+function isAuthRoute(pathname: string) {
+    return AUTH_ROUTES.some(
+        (route) => pathname === route || pathname.startsWith(route + "/")
+    );
+}
+
+function isRoleAllowed(pathname: string, role?: Role) {
+    if (pathname.startsWith("/dashboard/admin") && role !== "ADMIN") return false;
+    if (pathname.startsWith("/dashboard/tenant") && role !== "TENANT") return false;
+    if (pathname.startsWith("/dashboard/landlord") && role !== "LANDLORD") return false;
+    return true;
+}
+
 export async function proxy(request: NextRequest) {
     const pathname = request.nextUrl.pathname;
 
-
-    const isPublicRoute = PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith(route + "/"));
-    const isAuthRoute = AUTH_ROUTES.some((route) => pathname === route || pathname.startsWith(route + "/"));
-
-    if (isPublicRoute) {
+    if (isPublicRoute(pathname)) {
         return NextResponse.next();
     }
 
     let accessToken = request.cookies.get("accessToken")?.value;
     const refreshToken = request.cookies.get("refreshToken")?.value;
 
-    let decodedAccessToken = accessToken
-        ? jwtUtils.verifyToken(
-            accessToken,
-            process.env.JWT_ACCESS_TOKEN_SECRET!
-        )
+    let decoded = accessToken
+        ? jwtUtils.verifyToken(accessToken, process.env.JWT_ACCESS_TOKEN_SECRET!)
         : null;
 
-
-    if (!decodedAccessToken?.success && refreshToken) {
-        const decodedRefreshToken = jwtUtils.verifyToken(
+    // Access token missing/invalid but we have a refresh token — try to refresh.
+    if (!decoded?.success && refreshToken) {
+        const decodedRefresh = jwtUtils.verifyToken(
             refreshToken,
             process.env.JWT_REFRESH_TOKEN_SECRET!
         );
 
-        if (decodedRefreshToken.success) {
+        if (decodedRefresh.success) {
             const result = await getNewAccessToken();
 
-            if (result?.success) {
-                accessToken = result.data?.accessToken;
-
-                decodedAccessToken = jwtUtils.verifyToken(
-                    accessToken as string,
+            if (result?.success && result.data?.accessToken) {
+                accessToken = result.data.accessToken;
+                decoded = jwtUtils.verifyToken(
+                    accessToken,
                     process.env.JWT_ACCESS_TOKEN_SECRET!
                 );
 
-                const response = NextResponse.next();
+                if (decoded.success) {
+                    const role = decoded.data?.role as Role | undefined;
 
-                response.cookies.set(
-                    "accessToken",
-                    result.data.accessToken,
-                    {
+                    if (!isRoleAllowed(pathname, role)) {
+                        return NextResponse.redirect(new URL("/not-found", request.url));
+                    }
+
+                    const response = NextResponse.next();
+                    response.cookies.set("accessToken", result.data.accessToken, {
                         httpOnly: true,
                         secure: process.env.NODE_ENV === "production",
                         sameSite: "lax",
                         maxAge: 60 * 60 * 24,
                         path: "/",
                     }
-                );
-                // Continue request with refreshed cookie
-                if (decodedAccessToken.success) {
-                    const role = decodedAccessToken.data?.role;
-
-                    if (
-                        pathname.startsWith("/dashboard/admin") &&
-                        role !== "ADMIN"
-                    ) {
-                        return NextResponse.redirect(
-                            new URL("/not-found", request.url)
-                        );
-                    }
-
-                    if (
-                        pathname.startsWith("/dashboard/tenant") &&
-                        role !== "TENANT"
-                    ) {
-                        return NextResponse.redirect(
-                            new URL("/not-found", request.url)
-                        );
-                    }
-
-                    if (
-                        pathname.startsWith("/dashboard/landlord") &&
-                        role !== "LANDLORD"
-                    ) {
-                        return NextResponse.redirect(
-                            new URL("/not-found", request.url)
-                        );
-                    }
-
+                    );
                     return response;
                 }
             }
         }
     }
 
-    if (!decodedAccessToken?.success) {
-        if (isAuthRoute) {
+    // No valid session at this point (refresh failed or wasn't attempted).
+    if (!decoded?.success) {
+        if (isAuthRoute(pathname)) {
             return NextResponse.next();
         }
-
         return NextResponse.redirect(new URL("/auth/login", request.url));
     }
 
-    const role = decodedAccessToken.data?.role;
+    const role = decoded.data?.role as Role | undefined;
 
-    if (isAuthRoute) {
-        return NextResponse.redirect(new URL(`/dashboard/${role.toLowerCase()}`, request.url));
-    }
-
-
-    if (pathname.startsWith("/dashboard/admin") && role !== "ADMIN") {
-        return NextResponse.redirect(new URL("/not-found", request.url));
-    }
-
-    if (pathname.startsWith("/dashboard/tenant") && role !== "TENANT") {
-        return NextResponse.redirect(new URL("/not-found", request.url));
-    }
-
-    if (pathname.startsWith("/dashboard/landlord") && role !== "LANDLORD") {
+    if (isAuthRoute(pathname)) {
+        // Already logged in — bounce away from login/register.
+        if (!role) {
+            return NextResponse.redirect(new URL("/auth/login", request.url));
+        }
         return NextResponse.redirect(
-            new URL("/not-found", request.url)
+            new URL(`/dashboard/${role.toLowerCase()}`, request.url)
         );
+    }
+
+    if (!isRoleAllowed(pathname, role)) {
+        return NextResponse.redirect(new URL("/not-found", request.url));
     }
 
     return NextResponse.next();
@@ -128,6 +108,6 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
     matcher: [
-        "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|gif|svg|webp)$).*)",
+        "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|gif|svg|webp|ico|woff|woff2|ttf)$).*)",
     ],
 };
