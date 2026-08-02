@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { adminService } from "@/service/adminService";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface User {
     id: string;
@@ -168,12 +169,37 @@ const AllUsers = () => {
 
                 <CardContent>
                     {loading ? (
-                        <div className="flex min-h-[200px] items-center justify-center">
-                            <p className="text-sm text-muted-foreground">
-                                Loading users...
-                            </p>
-                        </div>
-                    ) : users.length === 0 ? (
+    <div className="overflow-x-auto">
+        <table className="w-full text-left text-sm">
+            <thead>
+                <tr className="border-b text-xs uppercase tracking-wider text-muted-foreground">
+                    <th className="pb-3 font-medium">User</th>
+                    <th className="pb-3 font-medium">Role</th>
+                    <th className="pb-3 font-medium">Status</th>
+                    <th className="pb-3 font-medium text-right">Action</th>
+                </tr>
+            </thead>
+            <tbody className="divide-y">
+                {Array.from({ length: 6 }).map((_, i) => (
+                    <tr key={i}>
+                        <td className="py-3">
+                            <div className="flex items-center gap-3">
+                                <Skeleton className="h-9 w-9 rounded-full" />
+                                <div className="space-y-1.5">
+                                    <Skeleton className="h-4 w-28" />
+                                    <Skeleton className="h-3 w-36" />
+                                </div>
+                            </div>
+                        </td>
+                        <td className="py-3"><Skeleton className="h-5 w-16 rounded-full" /></td>
+                        <td className="py-3"><Skeleton className="h-5 w-14 rounded-full" /></td>
+                        <td className="py-3 text-right"><Skeleton className="ml-auto h-7 w-16 rounded-lg" /></td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    </div>
+) : users.length === 0 ? (
                         <p className="py-8 text-center text-sm text-muted-foreground">
                             No users found.
                         </p>

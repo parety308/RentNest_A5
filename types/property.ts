@@ -35,14 +35,16 @@ export interface Property {
     name: string;
   };
 
-  landlord: {
-    id: string;
-    name: string;
-    email: string;
-  };
+ landlord: {
+  id: string;
+  name: string;
+  email: string;
+};
 
-  createdAt?: string;
-  updatedAt?: string;
+reviews?: Review[];
+
+createdAt?: string;
+updatedAt?: string;
 }
 
 export type Props = {

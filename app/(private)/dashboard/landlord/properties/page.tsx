@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { landlordService } from "@/service/landlordService";
 import { cn } from "@/app/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 
 
@@ -156,11 +157,29 @@ const LandlordProperties = () => {
             )}
 
             {loading ? (
-                <div className="flex items-center justify-center py-16 text-muted-foreground">
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Loading properties...
-                </div>
-            ) : properties.length === 0 ? (
+    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {Array.from({ length: 6 }).map((_, i) => (
+            <Card key={i} className="overflow-hidden">
+                <Skeleton className="h-40 w-full rounded-none" />
+                <CardContent className="space-y-3 pt-4">
+                    <Skeleton className="h-5 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                    <Skeleton className="h-4 w-1/3" />
+                    <div className="flex gap-4">
+                        <Skeleton className="h-4 w-12" />
+                        <Skeleton className="h-4 w-12" />
+                        <Skeleton className="h-4 w-16" />
+                    </div>
+                    <Skeleton className="h-5 w-24" />
+                    <div className="flex gap-2 pt-1">
+                        <Skeleton className="h-8 flex-1" />
+                        <Skeleton className="h-8 flex-1" />
+                    </div>
+                </CardContent>
+            </Card>
+        ))}
+    </div>
+) : properties.length === 0 ? (
                 <Card>
                     <CardContent className="flex flex-col items-center justify-center gap-3 py-16 text-center">
                         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">

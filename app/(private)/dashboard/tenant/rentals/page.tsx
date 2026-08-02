@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import { RentalRequest } from "@/types/rental.type";
 import { getMyActiveRentals } from "@/service/tenant.service";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const statusStyles: Record<string, string> = {
   ACTIVE: "bg-[#16523D]/10 text-[#16523D]",
@@ -30,9 +31,25 @@ const MyRentals = () => {
     })();
   }, []);
 
-  if (loading) {
-    return <div className="p-8 text-center text-muted-foreground">Loading your rentals…</div>;
-  }
+if (loading) {
+    return (
+        <div className="p-6 space-y-4">
+            <Skeleton className="h-8 w-48" />
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="rounded-xl border overflow-hidden">
+                        <Skeleton className="h-40 w-full rounded-none" />
+                        <div className="p-4 space-y-2">
+                            <Skeleton className="h-4 w-3/4" />
+                            <Skeleton className="h-3 w-full" />
+                            <Skeleton className="h-4 w-20" />
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
 
   if (rentals.length === 0) {
     return (

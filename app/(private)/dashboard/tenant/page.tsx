@@ -10,6 +10,7 @@ import { getMyRentalRequests } from "@/service/tenant.service";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const TenantDashboard = () => {
   const [requests, setRequests] = useState<RentalRequest[]>([]);
@@ -49,11 +50,43 @@ const TenantDashboard = () => {
 
   if (loading) {
     return (
-      <div className="p-8 text-center text-muted-foreground">
-        Loading dashboard...
+      <div className="space-y-8 p-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="space-y-2">
+            <Skeleton className="h-7 w-40" />
+            <Skeleton className="h-4 w-64" />
+          </div>
+          <Skeleton className="h-10 w-40" />
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}>
+              <CardContent className="space-y-2 pt-6">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-7 w-12" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <div className="space-y-3">
+          <Skeleton className="h-6 w-32" />
+          <div className="overflow-hidden rounded-xl border">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="flex items-center justify-between border-b p-4 last:border-none">
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-40" />
+                  <Skeleton className="h-3 w-20" />
+                </div>
+                <Skeleton className="h-6 w-16 rounded-full" />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
-  }
+}
 
   return (
     <div className="space-y-8 p-6">

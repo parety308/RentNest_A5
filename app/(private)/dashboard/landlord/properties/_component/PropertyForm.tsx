@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, FormEvent } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Loader2 } from "lucide-react";
@@ -25,6 +25,8 @@ import {
     IUpdatePropertyPayload,
     landlordService,
 } from "@/service/landlordService";
+
+import ImageDropzone from "./ImageDropzone";
 
 // Shape passed in when editing an existing property.
 // Adjust field names/types here if your API response differs.
@@ -117,11 +119,16 @@ const PropertyForm = ({ mode, propertyId, initialData }: PropertyFormProps) => {
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        if (initialData) {
-            setForm(toFormState(initialData));
-        }
-    }, [initialData]);
+    // Track the last initialData we synced from, so we adjust state
+    // during render instead of via a setState-in-effect side effect.
+    const [syncedId, setSyncedId] = useState<string | undefined>(
+        initialData?.id
+    );
+
+    if (initialData && initialData.id !== syncedId) {
+        setForm(toFormState(initialData));
+        setSyncedId(initialData.id);
+    }
 
     useEffect(() => {
         const loadCategories = async () => {
@@ -150,6 +157,19 @@ const PropertyForm = ({ mode, propertyId, initialData }: PropertyFormProps) => {
         setForm((prev) => ({ ...prev, [key]: value }));
     };
 
+    const parseImages = () =>
+        form.images
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean);
+
+    const parseAmenities = () =>
+        form.amenities
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean);
+
+    // Payload for CREATE
     const buildPayload = (): ICreatePropertyPayload => ({
         title: form.title,
         description: form.description,
@@ -161,16 +181,24 @@ const PropertyForm = ({ mode, propertyId, initialData }: PropertyFormProps) => {
         bedrooms: Number(form.bedrooms) || 0,
         bathrooms: Number(form.bathrooms) || 0,
         sqft: Number(form.sqft) || 0,
-        images: form.images
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean),
-        amenities: form.amenities
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean),
+        images: parseImages(),
+        amenities: parseAmenities(),
         available: form.available,
         availableFrom: form.availableFrom || null,
+        categoryId: form.categoryId,
+    });
+
+    // Payload for UPDATE (matches IUpdatePropertyPayload's shape)
+    const buildUpdatePayload = (): IUpdatePropertyPayload => ({
+        title: form.title,
+        description: form.description,
+        price: Number(form.price),
+        bedrooms: Number(form.bedrooms) || 0,
+        bathrooms: Number(form.bathrooms) || 0,
+        availableFrom: form.availableFrom || null,
+        amenities: parseAmenities(),
+        images: parseImages(),
+        status: form.available ? "AVAILABLE" : "UNAVAILABLE",
         categoryId: form.categoryId,
     });
 
@@ -183,18 +211,21 @@ const PropertyForm = ({ mode, propertyId, initialData }: PropertyFormProps) => {
             return;
         }
 
+        if (parseImages().length === 0) {
+            setError("Please upload at least one property image.");
+            return;
+        }
+
         setSubmitting(true);
 
         try {
-            const payload = buildPayload();
-
             const json =
                 mode === "edit" && propertyId
                     ? await landlordService.updateProperty(
                           propertyId,
-                          payload as IUpdatePropertyPayload
+                          buildUpdatePayload()
                       )
-                    : await landlordService.createProperty(payload);
+                    : await landlordService.createProperty(buildPayload());
 
             if (!json?.success) {
                 throw new Error(
@@ -423,14 +454,14 @@ const PropertyForm = ({ mode, propertyId, initialData }: PropertyFormProps) => {
                             </div>
 
                             <div className="space-y-1.5 sm:col-span-2">
-                                <Label htmlFor="images">
-                                    Image URLs (comma separated)
-                                </Label>
-                                <Input
-                                    id="images"
-                                    placeholder="https://..., https://..."
-                                    value={form.images}
-                                    onChange={(e) => updateField("images", e.target.value)}
+                                <Label>Property Images</Label>
+                                <ImageDropzone
+                                    images={parseImages()}
+                                    onChange={(images) =>
+                                        updateField("images", images.join(","))
+                                    }
+                                    disabled={submitting}
+                                    maxImages={10}
                                 />
                             </div>
                         </div>

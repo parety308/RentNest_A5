@@ -7,6 +7,7 @@ import { RentalRequest, RequestStatus } from "@/types/rental.type";
 import { getMyPendingRequests } from "@/service/tenant.service";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const statusStyles: Record<RequestStatus, string> = {
     PENDING: "bg-yellow-100 text-yellow-700",
@@ -34,8 +35,23 @@ const MyRentalRequests = () => {
     }, []);
 
     if (loading) {
-        return <div className="p-8 text-center text-muted-foreground">Loading your requests…</div>;
-    }
+    return (
+        <div className="p-6 space-y-4">
+            <Skeleton className="h-8 w-56" />
+            <div className="rounded-xl border divide-y">
+                {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="flex items-center justify-between p-4">
+                        <div className="space-y-2">
+                            <Skeleton className="h-4 w-40" />
+                            <Skeleton className="h-3 w-56" />
+                        </div>
+                        <Skeleton className="h-6 w-20 rounded-full" />
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
 
     if (requests.length === 0) {
         return (

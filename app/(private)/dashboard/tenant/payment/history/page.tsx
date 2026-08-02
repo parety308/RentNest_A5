@@ -6,6 +6,7 @@ import { Calendar, CreditCard, Loader2, Receipt } from "lucide-react";
 import { paymentService } from "@/service/paymentService";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Payment {
   id: string;
@@ -51,12 +52,32 @@ export default function PaymentHistoryPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-24 text-muted-foreground">
-        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-        Loading payment history...
+      <div className="space-y-8">
+        <div className="space-y-2">
+          <Skeleton className="h-7 w-48" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+        <Card>
+          <CardHeader><Skeleton className="h-5 w-24" /></CardHeader>
+          <CardContent className="divide-y">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="flex flex-col gap-4 py-5 md:flex-row md:items-center md:justify-between">
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-40" />
+                  <Skeleton className="h-3 w-56" />
+                  <Skeleton className="h-3 w-32" />
+                </div>
+                <div className="flex items-center gap-4">
+                  <Skeleton className="h-5 w-16" />
+                  <Skeleton className="h-6 w-20 rounded-full" />
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
       </div>
     );
-  }
+}
 
   return (
     <div className="space-y-8">

@@ -9,6 +9,7 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { adminService } from "@/service/adminService";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Rental {
     id: string;
@@ -99,8 +100,8 @@ const AllRentals = () => {
                 key === "ALL"
                     ? rentals.length
                     : rentals.filter(
-                          (r) => (r.status || "").toUpperCase() === key
-                      ).length;
+                        (r) => (r.status || "").toUpperCase() === key
+                    ).length;
             return acc;
         }, {});
     }, [rentals]);
@@ -126,11 +127,10 @@ const AllRentals = () => {
                         <button
                             key={status}
                             onClick={() => setStatusFilter(status)}
-                            className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                                statusFilter === status
+                            className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${statusFilter === status
                                     ? "bg-primary text-primary-foreground"
                                     : "bg-muted text-muted-foreground hover:bg-muted/70"
-                            }`}
+                                }`}
                         >
                             {status.charAt(0) + status.slice(1).toLowerCase()}{" "}
                             <span className="opacity-70">
@@ -154,10 +154,35 @@ const AllRentals = () => {
 
                 <CardContent>
                     {loading ? (
-                        <div className="flex min-h-50 items-center justify-center">
-                            <p className="text-sm text-muted-foreground">
-                                Loading rental requests...
-                            </p>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left text-sm">
+                                <thead>
+                                    <tr className="border-b text-xs uppercase tracking-wider text-muted-foreground">
+                                        <th className="pb-3 font-medium">Tenant</th>
+                                        <th className="pb-3 font-medium">Property</th>
+                                        <th className="pb-3 font-medium">Requested</th>
+                                        <th className="pb-3 font-medium">Move-in</th>
+                                        <th className="pb-3 font-medium">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y">
+                                    {Array.from({ length: 6 }).map((_, i) => (
+                                        <tr key={i}>
+                                            <td className="py-3 space-y-1.5">
+                                                <Skeleton className="h-4 w-24" />
+                                                <Skeleton className="h-3 w-32" />
+                                            </td>
+                                            <td className="py-3 space-y-1.5">
+                                                <Skeleton className="h-4 w-28" />
+                                                <Skeleton className="h-3 w-16" />
+                                            </td>
+                                            <td className="py-3"><Skeleton className="h-4 w-20" /></td>
+                                            <td className="py-3"><Skeleton className="h-4 w-20" /></td>
+                                            <td className="py-3"><Skeleton className="h-5 w-16 rounded-full" /></td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
                     ) : filteredRentals.length === 0 ? (
                         <p className="py-8 text-center text-sm text-muted-foreground">

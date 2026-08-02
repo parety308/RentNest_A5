@@ -37,6 +37,7 @@ export interface IUpdatePropertyPayload {
     price?: number;
     bedrooms?: number;
     bathrooms?: number;
+    availableFrom?: string | null;
     amenities: string[];
     images: string[];
     status?: "AVAILABLE" | "UNAVAILABLE";

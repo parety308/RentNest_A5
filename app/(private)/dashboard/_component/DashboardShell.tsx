@@ -21,6 +21,9 @@ import {
     Avatar,
     AvatarFallback,
 } from "@/components/ui/avatar";
+import logout from "@/service/logout";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface User {
     id: string;
@@ -140,7 +143,13 @@ export default function DashboardShell({
 }: DashboardShellProps) {
     const pathname = usePathname();
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const router = useRouter();
 
+    const handleLogout = async () => {
+        await logout();
+        router.push("/auth/login");
+        toast("Logged out");
+    };
     const navItems = navigation[user.role];
 
     return (
@@ -265,10 +274,7 @@ export default function DashboardShell({
 
                     <button
                         className="mt-1 flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                        onClick={() => {
-                            // Add your logout action here
-                            console.log("Logout");
-                        }}
+                        onClick={handleLogout}
                     >
                         <LogOut className="h-5 w-5" />
                         Logout
