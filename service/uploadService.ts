@@ -1,11 +1,9 @@
-const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-
 export const uploadService = {
     uploadImages: async (files: File[]): Promise<string[]> => {
         const formData = new FormData();
         files.forEach((file) => formData.append("images", file));
 
-        const response = await fetch(`${API_URL}/uploads/images`, {
+        const response = await fetch(`/api/uploads/images`, {
             method: "POST",
             credentials: "include",
             body: formData,

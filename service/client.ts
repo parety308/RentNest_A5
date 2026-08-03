@@ -1,10 +1,8 @@
-const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-
 export async function apiClient(
   endpoint: string,
   options?: RequestInit
 ) {
-  const response = await fetch(`${API_URL}${endpoint}`, {
+  const response = await fetch(`/api${endpoint}`, {
     ...options,
     credentials: "include",
     headers: {
