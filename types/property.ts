@@ -63,8 +63,11 @@ export type PropertyQuery = {
 
 export interface Review {
   id: string;
-  user: string;
-  avatar: string;
   rating: number;
-  comment: string;
+  comment: string | null;
+  createdAt: string;
+  tenant: {
+    id: string;
+    name: string;
+  };
 }

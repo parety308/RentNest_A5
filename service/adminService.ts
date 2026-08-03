@@ -10,6 +10,10 @@ export interface UpdateUserStatusPayload {
     isBanned: boolean;
 }
 
+export interface UpdatePropertyStatusPayload {
+    status: "AVAILABLE" | "UNAVAILABLE";
+}
+
 export const adminService = {
     getAllUsers: async (params?: GetUsersParams) => {
         const query = new URLSearchParams();
@@ -45,6 +49,22 @@ export const adminService = {
 
     getAllProperties: async () => {
         return apiClient("/admin/properties");
+    },
+
+    updatePropertyStatus: async (
+        id: string,
+        data: UpdatePropertyStatusPayload
+    ) => {
+        return apiClient(`/admin/properties/${id}`, {
+            method: "PATCH",
+            body: JSON.stringify(data),
+        });
+    },
+
+    deleteProperty: async (id: string) => {
+        return apiClient(`/admin/properties/${id}`, {
+            method: "DELETE",
+        });
     },
 
     getAllRentals: async () => {

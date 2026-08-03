@@ -58,6 +58,11 @@ const navigation: Record<User["role"], NavItem[]> = {
             icon: Users,
         },
         {
+            label: "Properties",
+            href: "/dashboard/admin/properties",
+            icon: Building2,
+        },
+        {
             label: "Rental Requests",
             href: "/dashboard/admin/rentals",
             icon: ClipboardList,
@@ -86,7 +91,7 @@ const navigation: Record<User["role"], NavItem[]> = {
             icon: ClipboardList,
         },
         { label: "Rent Payments", href: "/dashboard/tenant/payment/history", icon: CreditCard },
-       { label: "Neighborhood Guide", href: "#",icon:MdSettingsSuggest }
+        { label: "Neighborhood Guide", href: "#", icon: MdSettingsSuggest }
     ],
 
     LANDLORD: [
@@ -110,7 +115,7 @@ const navigation: Record<User["role"], NavItem[]> = {
             href: "/dashboard/landlord/requests",
             icon: ClipboardList,
         },
-       
+
     ],
 };
 

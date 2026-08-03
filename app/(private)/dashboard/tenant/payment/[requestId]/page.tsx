@@ -1,5 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { toast } from "sonner";
+
 import {
     Card,
     CardContent,
@@ -9,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
     Calendar,
     CreditCard,
@@ -16,17 +21,53 @@ import {
     User,
     Wallet,
 } from "lucide-react";
-import { useParams } from "next/navigation";
-import { useState } from "react";
-import { toast } from "sonner";
-import { paymentService } from "@/service/paymentService";
 
+import { paymentService } from "@/service/paymentService";
+import { getRentalRequestById } from "@/service/tenant.service";
+import { RentalRequest } from "@/types/rental.type";
+import { shortDate } from "@/lib/format";
+
+const statusVariant: Record<RentalRequest["status"], "default" | "secondary" | "destructive"> = {
+    PENDING: "secondary",
+    APPROVED: "default",
+    REJECTED: "destructive",
+    ACTIVE: "default",
+    COMPLETED: "secondary",
+};
 
 export default function PaymentPage() {
     const params = useParams();
+    const router = useRouter();
     const rentalRequestId = params.requestId as string;
 
-    const [loading, setLoading] = useState(false);
+    const [request, setRequest] = useState<RentalRequest | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [payLoading, setPayLoading] = useState(false);
+
+    useEffect(() => {
+        const loadRequest = async () => {
+            try {
+                const data = await getRentalRequestById(rentalRequestId);
+                setRequest(data);
+
+                if (data && data.status !== "APPROVED") {
+                    toast.error(
+                        "This rental request isn't approved for payment yet."
+                    );
+                }
+            } catch (error) {
+                toast.error(
+                    error instanceof Error
+                        ? error.message
+                        : "Failed to load rental request"
+                );
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (rentalRequestId) loadRequest();
+    }, [rentalRequestId]);
 
     const handlePayNow = async () => {
         if (!rentalRequestId) {
@@ -35,12 +76,11 @@ export default function PaymentPage() {
         }
 
         try {
-            setLoading(true);
+            setPayLoading(true);
 
             const response = await paymentService.createPayment({
                 rentalRequestId,
             });
-
 
             if (response.success) {
                 window.location.href = response.data.checkoutUrl;
@@ -54,9 +94,68 @@ export default function PaymentPage() {
                     : "Failed to start payment"
             );
         } finally {
-            setLoading(false);
+            setPayLoading(false);
         }
     };
+
+    if (loading) {
+        return (
+            <div className="container mx-auto max-w-4xl space-y-8 px-4 py-10">
+                <Skeleton className="h-9 w-72" />
+
+                <div className="grid gap-6 lg:grid-cols-3">
+                    <Card className="lg:col-span-2">
+                        <CardHeader>
+                            <Skeleton className="h-6 w-40" />
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <div className="space-y-2">
+                                <Skeleton className="h-6 w-56" />
+                                <Skeleton className="h-4 w-40" />
+                            </div>
+                            <Separator />
+                            <div className="grid gap-5 md:grid-cols-2">
+                                <Skeleton className="h-12 w-full" />
+                                <Skeleton className="h-12 w-full" />
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="h-fit">
+                        <CardHeader>
+                            <Skeleton className="h-6 w-40" />
+                        </CardHeader>
+                        <CardContent className="space-y-5">
+                            <Skeleton className="h-5 w-full" />
+                            <Skeleton className="h-6 w-full" />
+                            <Skeleton className="h-10 w-full" />
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
+        );
+    }
+
+    if (!request) {
+        return (
+            <div className="container mx-auto max-w-4xl px-4 py-10 text-center">
+                <p className="text-sm font-medium text-destructive">
+                    Rental request not found, or you don&apos;t have access to
+                    it.
+                </p>
+
+                <Button
+                    className="mt-4"
+                    variant="outline"
+                    onClick={() => router.push("/dashboard/tenant/requests")}
+                >
+                    Back to Requests
+                </Button>
+            </div>
+        );
+    }
+
+    const rent = request.property.price;
 
     return (
         <div className="container mx-auto max-w-4xl px-4 py-10">
@@ -75,13 +174,15 @@ export default function PaymentPage() {
                     <CardContent className="space-y-6">
                         <div>
                             <h2 className="text-xl font-semibold">
-                                Modern Family Apartment
+                                {request.property.title}
                             </h2>
 
                             <div className="mt-2 flex items-center gap-2 text-muted-foreground">
                                 <MapPin className="h-4 w-4" />
                                 <span>
-                                    Dhanmondi, Dhaka, Bangladesh
+                                    {request.property.address},{" "}
+                                    {request.property.city},{" "}
+                                    {request.property.state}
                                 </span>
                             </div>
                         </div>
@@ -98,7 +199,7 @@ export default function PaymentPage() {
                                     </p>
 
                                     <p className="font-medium">
-                                        MD Parvez Hasan
+                                        {request.tenant?.name ?? "—"}
                                     </p>
                                 </div>
                             </div>
@@ -112,7 +213,13 @@ export default function PaymentPage() {
                                     </p>
 
                                     <p className="font-medium">
-                                        Aug 10, 2026 - Sep 10, 2026
+                                        {request.startDate
+                                            ? shortDate(request.startDate)
+                                            : "Flexible"}
+                                        {" - "}
+                                        {request.endDate
+                                            ? shortDate(request.endDate)
+                                            : "Flexible"}
                                     </p>
                                 </div>
                             </div>
@@ -125,7 +232,9 @@ export default function PaymentPage() {
                                 Rental Status
                             </p>
 
-                            <Badge>APPROVED</Badge>
+                            <Badge variant={statusVariant[request.status]}>
+                                {request.status}
+                            </Badge>
                         </div>
                     </CardContent>
                 </Card>
@@ -138,42 +247,30 @@ export default function PaymentPage() {
 
                     <CardContent className="space-y-5">
 
-                        <div className="flex justify-between">
-                            <span className="text-muted-foreground">
-                                Monthly Rent
-                            </span>
-
-                            <span className="font-medium">
-                                $500
-                            </span>
-                        </div>
-
-                        <div className="flex justify-between">
-                            <span className="text-muted-foreground">
-                                Service Fee
-                            </span>
-
-                            <span className="font-medium">
-                                $10
-                            </span>
-                        </div>
-
-                        <Separator />
-
                         <div className="flex justify-between text-lg font-bold">
-                            <span>Total</span>
-
-                            <span>$510</span>
+                            <span>Total Due</span>
+                            <span>${rent.toLocaleString()}</span>
                         </div>
+
+                        <p className="text-xs text-muted-foreground">
+                            Charged once as your first month&apos;s rent via
+                            Stripe Checkout.
+                        </p>
 
                         <Button
                             onClick={handlePayNow}
-                            disabled={loading}
+                            disabled={
+                                payLoading || request.status !== "APPROVED"
+                            }
                             className="w-full h-11"
                         >
                             <CreditCard className="mr-2 h-4 w-4" />
 
-                            {loading ? "Redirecting to Stripe..." : "Pay Now"}
+                            {payLoading
+                                ? "Redirecting to Stripe..."
+                                : request.status !== "APPROVED"
+                                ? "Not Approved Yet"
+                                : "Pay Now"}
                         </Button>
 
                         <div className="rounded-lg border bg-muted/50 p-4">

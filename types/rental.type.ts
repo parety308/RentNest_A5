@@ -30,6 +30,11 @@ export interface RentalRequest {
   createdAt: string;
   updatedAt: string;
   property: Property;
+  tenant?: {
+    id: string;
+    name: string;
+    email: string;
+  };
   payment?: Payment[];
 }
 
