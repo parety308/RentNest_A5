@@ -2,8 +2,11 @@
 
 import { useState } from "react";
 import { Heart } from "lucide-react";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { savedService } from "@/service/savedService";
 
 interface Props {
   propertyId: string;
@@ -16,25 +19,35 @@ export default function SaveButton({
 }: Props) {
   const [saved, setSaved] = useState(initialSaved);
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   async function handleToggle() {
     const next = !saved;
 
-    // optimistic update
     setSaved(next);
     setLoading(true);
 
     try {
-      // NOTE: implement this route — it doesn't exist yet.
-      const res = await fetch(`/api/properties/${propertyId}/save`, {
-        method: next ? "POST" : "DELETE",
-      });
+      const res = next
+        ? await savedService.saveProperty(propertyId)
+        : await savedService.unsaveProperty(propertyId);
 
-      if (!res.ok) throw new Error("Failed to update saved property");
+      if (!res?.success) {
+        throw new Error(res?.message ?? "Failed to update saved property");
+      }
+
+      toast.success(next ? "Added to saved homes" : "Removed from saved homes");
     } catch (error) {
-      // revert on failure
-      setSaved(!next);
-      console.error(error);
+      setSaved(!next); // revert on failure
+
+      const message = error instanceof Error ? error.message : "";
+
+      if (message.includes("401")) {
+        toast.error("Please sign in to save properties");
+        router.push("/auth/login");
+      } else {
+        toast.error("Couldn't update saved properties. Please try again.");
+      }
     } finally {
       setLoading(false);
     }

@@ -1,18 +1,18 @@
 import Image from "next/image";
-import { Heart, MapPin, Star } from "lucide-react";
+import { MapPin, Star } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
 import { Property } from "@/types/property";
-
-
+import SaveButton from "./SaveButton";
 
 interface PropertyCardProps {
   property: Property;
+  initialSaved?: boolean;
 }
 
-const PropertyCard = ({ property }: PropertyCardProps) => {
+const PropertyCard = ({ property, initialSaved = false }: PropertyCardProps) => {
   return (
     <Card className="flex h-full flex-col overflow-hidden">
       {/* Image Section */}
@@ -31,14 +31,10 @@ const PropertyCard = ({ property }: PropertyCardProps) => {
           <div className="absolute inset-0 bg-black/10 opacity-0 transition-opacity duration-300 hover:opacity-100" />
         </div>
 
-        {/* Favorite Button */}
-        <Button
-          size="icon"
-          variant="secondary"
-          className="absolute right-3 top-3 rounded-full shadow-md"
-        >
-          <Heart className="h-4 w-4" />
-        </Button>
+        {/* Favorite Button — now wired to save/unsave */}
+        <div className="absolute right-3 top-3">
+          <SaveButton propertyId={property.id} initialSaved={initialSaved} />
+        </div>
 
         {property.available === false && (
           <span className="absolute left-3 top-3 rounded-full bg-red-500 px-3 py-1 text-xs font-medium text-white">

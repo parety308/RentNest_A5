@@ -3,9 +3,10 @@ import PropertyCard from "./PropertyCard";
 
 interface Props {
   properties: Property[];
+  savedIds?: string[];
 }
 
-export default function SimilarProperties({ properties }: Props) {
+export default function SimilarProperties({ properties, savedIds = [] }: Props) {
   if (properties.length === 0) return null;
 
   return (
@@ -14,7 +15,11 @@ export default function SimilarProperties({ properties }: Props) {
 
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
         {properties.map((property) => (
-          <PropertyCard key={property.id} property={property} />
+          <PropertyCard
+            key={property.id}
+            property={property}
+            initialSaved={savedIds.includes(property.id)}
+          />
         ))}
       </div>
     </section>

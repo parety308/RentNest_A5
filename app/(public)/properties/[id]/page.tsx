@@ -17,6 +17,7 @@ import {
   getPropertyById,
   getProperties,
 } from "@/service/property.service";
+import { getSavedPropertyIds } from "@/service/getSavedPropertyIds";
 
 interface PageProps {
   params: Promise<{
@@ -36,10 +37,6 @@ export async function generateMetadata({
       title: "Property Not Found | RentNest",
     };
   }
-  const { data: similarProperties } = await getProperties({
-    category: property.category.name,
-    limit: 3,
-  });
 
   return {
     title: `${property.title} | RentNest`,
@@ -63,13 +60,14 @@ export default async function PropertyDetailsPage({
     notFound();
   }
 
-  // Fetch similar properties
+  const savedIds = await getSavedPropertyIds();
+  const isSaved = savedIds.includes(property.id);
+
   const { data: similarProperties } = await getProperties({
     category: property.category.name,
     limit: "3",
   });
 
-  // Remove current property from the list
   const filteredSimilarProperties = similarProperties.filter(
     (p) => p.id !== property.id
   );
@@ -80,7 +78,7 @@ export default async function PropertyDetailsPage({
         <section className="space-y-10">
           <PropertyGallery property={property} />
 
-          <PropertyHeader property={property} />
+          <PropertyHeader property={property} initialSaved={isSaved} />
 
           <PropertyOverview property={property} />
 
@@ -98,6 +96,7 @@ export default async function PropertyDetailsPage({
 
           <SimilarProperties
             properties={filteredSimilarProperties}
+            savedIds={savedIds}
           />
         </section>
 

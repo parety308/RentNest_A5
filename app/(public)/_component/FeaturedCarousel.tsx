@@ -16,14 +16,16 @@ import PropertyCard from "../properties/_component/PropertyCard";
 
 export default function FeaturedCarousel({
     properties,
+    savedIds = [],
 }: {
     properties: Property[];
+    savedIds?: string[];
 }) {
 
     const autoplay = useMemo(
         () =>
             Autoplay({
-                delay: 1500, // 4 seconds between slides
+                delay: 1500,
                 stopOnInteraction: false,
                 stopOnMouseEnter: true,
             }),
@@ -51,7 +53,10 @@ export default function FeaturedCarousel({
                             lg:basis-1/3
                         "
                     >
-                        <PropertyCard property={property} />
+                        <PropertyCard
+                            property={property}
+                            initialSaved={savedIds.includes(property.id)}
+                        />
                     </CarouselItem>
                 ))}
 

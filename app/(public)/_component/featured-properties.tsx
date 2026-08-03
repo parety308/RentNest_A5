@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 import { getProperties } from "@/service/property.service";
+import { getSavedPropertyIds } from "@/service/getSavedPropertyIds"; // ADD
 import { Property } from "@/types/property";
 import FeaturedCarousel from "./FeaturedCarousel";
 
@@ -15,6 +16,7 @@ export default async function FeaturedProperties() {
         limit: "all",
     });
 
+    const savedIds = await getSavedPropertyIds(); // ADD
 
     const featured = properties
         .filter((property: Property) => property.featured)
@@ -53,7 +55,7 @@ export default async function FeaturedProperties() {
 
 
                 <div className="mt-12">
-                    <FeaturedCarousel properties={featured}/>
+                    <FeaturedCarousel properties={featured} savedIds={savedIds} />
                 </div>
 
 

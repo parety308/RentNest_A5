@@ -10,9 +10,10 @@ import ShareButton from "./ShareButton";
 
 interface Props {
   property: Property;
+  initialSaved?: boolean;
 }
 
-export default function PropertyHeader({ property }: Props) {
+export default function PropertyHeader({ property, initialSaved = false }: Props) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 15 }}
@@ -48,7 +49,7 @@ export default function PropertyHeader({ property }: Props) {
         </div>
 
         <div className="flex gap-3">
-          <SaveButton propertyId={property.id} />
+            <SaveButton propertyId={property.id} initialSaved={initialSaved} />
           <ShareButton/>
         </div>
       </div>

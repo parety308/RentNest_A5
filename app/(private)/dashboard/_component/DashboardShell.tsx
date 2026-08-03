@@ -25,6 +25,7 @@ import {
 import logout from "@/service/logout";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { MdSettingsSuggest } from "react-icons/md";
 
 interface User {
     id: string;
@@ -84,8 +85,8 @@ const navigation: Record<User["role"], NavItem[]> = {
             href: "/dashboard/tenant/requests",
             icon: ClipboardList,
         },
-        { label: "Payment History", href: "/dashboard/tenant/payment/history", icon: CreditCard },
-       
+        { label: "Rent Payments", href: "/dashboard/tenant/payment/history", icon: CreditCard },
+       { label: "Neighborhood Guide", href: "#",icon:MdSettingsSuggest }
     ],
 
     LANDLORD: [

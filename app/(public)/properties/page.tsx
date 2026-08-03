@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/pagination";
 import { Props } from "@/types/property";
 import { getProperties } from "@/service/property.service";
+import { getSavedPropertyIds } from "@/service/getSavedPropertyIds"; // ADD
 import PropertySort from "./_component/PropertySort";
 import PropertyFilters from "./_component/PropertyFilters";
 import PropertyCard from "./_component/PropertyCard";
@@ -33,6 +34,9 @@ const PropertiesPage = async ({ searchParams }: Props) => {
 
 
     const { data: allProperties } = await getProperties({ limit: "all" });
+
+    const savedIds = await getSavedPropertyIds(); // ADD
+
     const cities: string[] = [
         "All cities",
         ...Array.from(
@@ -125,7 +129,6 @@ const PropertiesPage = async ({ searchParams }: Props) => {
         return pages;
 
     };
-    // console.log("META:", meta);
     return (
         <div className="min-h-screen bg-muted/30">
 
@@ -201,6 +204,7 @@ const PropertiesPage = async ({ searchParams }: Props) => {
                                 <PropertyCard
                                     key={property.id}
                                     property={property}
+                                    initialSaved={savedIds.includes(property.id)}
                                 />
 
                             ))
