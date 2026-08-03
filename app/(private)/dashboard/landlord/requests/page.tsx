@@ -11,6 +11,7 @@ import {
     MapPin,
     XCircle,
 } from "lucide-react";
+import { toast } from "sonner";
 
 import {
     Card,
@@ -21,9 +22,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { landlordService } from "@/service/landlordService";
 import { Skeleton } from "@/components/ui/skeleton";
-
-// Adjust to match your actual API base url / client setup
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "/api/v1";
 
 type RequestStatus = "PENDING" | "APPROVED" | "REJECTED" | "ACTIVE" | "COMPLETED";
 
@@ -77,12 +75,9 @@ const LandlordRequest = () => {
         setError(null);
 
         try {
-            const res = await fetch(`${API_BASE_URL}/landlord/requests`, {
-                credentials: "include",
-            });
-            const json = await res.json();
+            const json = await landlordService.getAllRentalRequests();
 
-            if (!res.ok || !json?.success) {
+            if (!json?.success) {
                 throw new Error(
                     json?.message ?? "Failed to load rental requests"
                 );
@@ -90,9 +85,10 @@ const LandlordRequest = () => {
 
             setRequests(json.data ?? []);
         } catch (err) {
-            setError(
-                err instanceof Error ? err.message : "Something went wrong"
-            );
+            const message =
+                err instanceof Error ? err.message : "Something went wrong";
+            setError(message);
+            toast.error(message);
         } finally {
             setLoading(false);
         }
@@ -107,21 +103,14 @@ const LandlordRequest = () => {
         status: "APPROVED" | "REJECTED"
     ) => {
         setActioningId(id);
+        setError(null);
 
         try {
-            const res = await fetch(
-                `${API_BASE_URL}/landlord/requests/${id}`,
-                {
-                    method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
-                    credentials: "include",
-                    body: JSON.stringify({ status }),
-                }
-            );
+            const json = await landlordService.updateRentalRequest(id, {
+                status,
+            });
 
-            const json = await res.json();
-
-            if (!res.ok || !json?.success) {
+            if (!json?.success) {
                 throw new Error(json?.message ?? "Failed to update request");
             }
 
@@ -130,10 +119,57 @@ const LandlordRequest = () => {
                     request.id === id ? { ...request, status } : request
                 )
             );
-        } catch (err) {
-            setError(
-                err instanceof Error ? err.message : "Something went wrong"
+
+            toast.success(
+                status === "APPROVED"
+                    ? "Request Approved"
+                    : "Request Rejected",
+                {
+                    description:
+                        status === "APPROVED"
+                            ? "The tenant can now proceed to payment."
+                            : "The tenant has been notified.",
+                }
             );
+        } catch (err) {
+            const message =
+                err instanceof Error ? err.message : "Something went wrong";
+            setError(message);
+            toast.error(message);
+        } finally {
+            setActioningId(null);
+        }
+    };
+
+    const handleComplete = async (id: string) => {
+        setActioningId(id);
+        setError(null);
+
+        try {
+            const json = await landlordService.updateRentalRequest(id, {
+                status: "COMPLETED",
+            });
+
+            if (!json?.success) {
+                throw new Error(json?.message ?? "Failed to update request");
+            }
+
+            setRequests((prev) =>
+                prev.map((item) =>
+                    item.id === id
+                        ? { ...item, status: "COMPLETED" }
+                        : item
+                )
+            );
+
+            toast.success("Rental marked as completed", {
+                description: "The tenant can now leave a review.",
+            });
+        } catch (err) {
+            const message =
+                err instanceof Error ? err.message : "Something went wrong";
+            setError(message);
+            toast.error(message);
         } finally {
             setActioningId(null);
         }
@@ -153,30 +189,6 @@ const LandlordRequest = () => {
         { label: "Rejected", value: "REJECTED" },
     ];
 
-    const handleComplete = async (id: string) => {
-        setActioningId(id);
-        setError(null);
-
-        try {
-            await landlordService.updateRentalRequest(id, {
-                status: "COMPLETED",
-            });
-
-            setRequests((prev) =>
-                prev.map((item) =>
-                    item.id === id
-                        ? { ...item, status: "COMPLETED" }
-                        : item
-                )
-            );
-        } catch (err) {
-            setError(
-                err instanceof Error ? err.message : "Something went wrong"
-            );
-        } finally {
-            setActioningId(null);
-        }
-    };
     return (
         <div className="space-y-8">
             {/* Header */}
@@ -222,29 +234,29 @@ const LandlordRequest = () => {
             )}
 
             {loading ? (
-    <div className="space-y-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-            <Card key={i}>
-                <CardHeader className="flex flex-row items-start justify-between gap-4">
-                    <div className="min-w-0 space-y-2">
-                        <Skeleton className="h-5 w-48" />
-                        <Skeleton className="h-4 w-32" />
-                    </div>
-                    <Skeleton className="h-6 w-20 rounded-full" />
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="grid gap-3 sm:grid-cols-2">
-                        <div className="space-y-2">
-                            <Skeleton className="h-4 w-28" />
-                            <Skeleton className="h-4 w-40" />
-                        </div>
-                        <Skeleton className="h-4 w-32 sm:justify-self-end" />
-                    </div>
-                </CardContent>
-            </Card>
-        ))}
-    </div>
-) : filteredRequests.length === 0 ? (
+                <div className="space-y-4">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                        <Card key={i}>
+                            <CardHeader className="flex flex-row items-start justify-between gap-4">
+                                <div className="min-w-0 space-y-2">
+                                    <Skeleton className="h-5 w-48" />
+                                    <Skeleton className="h-4 w-32" />
+                                </div>
+                                <Skeleton className="h-6 w-20 rounded-full" />
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="grid gap-3 sm:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <Skeleton className="h-4 w-28" />
+                                        <Skeleton className="h-4 w-40" />
+                                    </div>
+                                    <Skeleton className="h-4 w-32 sm:justify-self-end" />
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            ) : filteredRequests.length === 0 ? (
                 <Card>
                     <CardContent className="flex flex-col items-center justify-center gap-2 py-16 text-center">
                         <p className="font-medium">No requests here</p>
@@ -320,7 +332,11 @@ const LandlordRequest = () => {
                                                 )
                                             }
                                         >
-                                            <XCircle className="mr-1.5 h-4 w-4" />
+                                            {actioningId === request.id ? (
+                                                <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                                            ) : (
+                                                <XCircle className="mr-1.5 h-4 w-4" />
+                                            )}
                                             Reject
                                         </Button>
 
@@ -345,26 +361,28 @@ const LandlordRequest = () => {
                                         </Button>
                                     </div>
                                 )}
-                                {(request.status === "ACTIVE") && (
+
+                                {request.status === "ACTIVE" && (
                                     <div className="flex justify-end pt-2">
                                         <Button
                                             size="sm"
                                             disabled={
-                                                request.status !== "ACTIVE" ||
                                                 actioningId === request.id
                                             }
-                                            onClick={() => handleComplete(request.id)}
+                                            onClick={() =>
+                                                handleComplete(request.id)
+                                            }
                                         >
                                             {actioningId === request.id ? (
                                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                             ) : (
                                                 <CheckCircle2 className="mr-2 h-4 w-4" />
                                             )}
-
                                             Complete Rental
                                         </Button>
                                     </div>
                                 )}
+
                                 {request.status === "COMPLETED" && (
                                     <div className="flex justify-end pt-2">
                                         <Button size="sm" disabled>
