@@ -8,6 +8,7 @@ import {
     BarChart3,
     Building2,
     ClipboardList,
+    CreditCard,
     Home,
     LogOut,
     Menu,
@@ -88,6 +89,7 @@ const navigation: Record<User["role"], NavItem[]> = {
             href: "/dashboard/tenant/requests",
             icon: ClipboardList,
         },
+        { label: "Payment History", href: "/dashboard/tenant/payment/history", icon: CreditCard },
         {
             label: "Settings",
             href: "/dashboard/tenant/settings",

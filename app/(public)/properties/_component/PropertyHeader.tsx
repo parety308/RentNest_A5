@@ -6,7 +6,7 @@ import { MapPin, Star } from "lucide-react";
 import SaveButton from "./SaveButton";
 
 import { Property } from "@/types/property";
-import ShareButton from "./Share Button";
+import ShareButton from "./ShareButton";
 
 interface Props {
   property: Property;

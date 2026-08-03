@@ -101,7 +101,7 @@ const TenantDashboard = () => {
         </div>
 
         <Button asChild>
-          <Link href="/dashboard/tenant/payments/history">
+          <Link href="/dashboard/tenant/payment/history">
             <CreditCard className="mr-2 h-4 w-4" />
             Payment History
           </Link>
@@ -146,7 +146,7 @@ const TenantDashboard = () => {
           </div>
 
           <Button asChild variant="outline">
-            <Link href="/dashboard/tenant/payments/history">
+            <Link href="/dashboard/tenant/payment/history">
               View
             </Link>
           </Button>
