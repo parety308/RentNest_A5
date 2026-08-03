@@ -60,12 +60,7 @@ const navigation: Record<User["role"], NavItem[]> = {
             label: "Rental Requests",
             href: "/dashboard/admin/rentals",
             icon: ClipboardList,
-        },
-        {
-            label: "Settings",
-            href: "/dashboard/admin/settings",
-            icon: Settings,
-        },
+        }
     ],
 
     TENANT: [
@@ -90,11 +85,7 @@ const navigation: Record<User["role"], NavItem[]> = {
             icon: ClipboardList,
         },
         { label: "Payment History", href: "/dashboard/tenant/payment/history", icon: CreditCard },
-        {
-            label: "Settings",
-            href: "/dashboard/tenant/settings",
-            icon: Settings,
-        },
+       
     ],
 
     LANDLORD: [
@@ -118,11 +109,7 @@ const navigation: Record<User["role"], NavItem[]> = {
             href: "/dashboard/landlord/requests",
             icon: ClipboardList,
         },
-        {
-            label: "Settings",
-            href: "/dashboard/landlord/settings",
-            icon: Settings,
-        },
+       
     ],
 };
 
