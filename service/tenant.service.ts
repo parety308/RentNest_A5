@@ -31,10 +31,7 @@ export async function createRentalRequest(
   return res.data;
 }
 
-// Derived helpers — the backend doesn't split "rentals" vs "requests",
-// so we split status client-side.
 
-// "My Rentals" = confirmed tenancies (approved & paid, active or completed)
 export async function getMyActiveRentals(): Promise<RentalRequest[]> {
   const all = await getMyRentalRequests();
   return all.filter((r) => r.status === "ACTIVE" || r.status === "COMPLETED");

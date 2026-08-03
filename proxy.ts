@@ -53,7 +53,7 @@ export async function proxy(request: NextRequest) {
             if (result?.success && result.data?.accessToken) {
                 accessToken = result.data.accessToken;
                 decoded = jwtUtils.verifyToken(
-                    accessToken,
+                    accessToken as string,
                     process.env.JWT_ACCESS_TOKEN_SECRET!
                 );
 

@@ -28,8 +28,7 @@ import {
 
 import ImageDropzone from "./ImageDropzone";
 
-// Shape passed in when editing an existing property.
-// Adjust field names/types here if your API response differs.
+
 export interface PropertyFormInitialData {
     id: string;
     title: string;
@@ -105,8 +104,8 @@ const toFormState = (data: PropertyFormInitialData): FormState => ({
 
 interface PropertyFormProps {
     mode: "create" | "edit";
-    propertyId?: string; // required when mode === "edit"
-    initialData?: PropertyFormInitialData; // required when mode === "edit"
+    propertyId?: string;
+    initialData?: PropertyFormInitialData;
 }
 
 const PropertyForm = ({ mode, propertyId, initialData }: PropertyFormProps) => {
@@ -119,8 +118,7 @@ const PropertyForm = ({ mode, propertyId, initialData }: PropertyFormProps) => {
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // Track the last initialData we synced from, so we adjust state
-    // during render instead of via a setState-in-effect side effect.
+
     const [syncedId, setSyncedId] = useState<string | undefined>(
         initialData?.id
     );
@@ -222,15 +220,15 @@ const PropertyForm = ({ mode, propertyId, initialData }: PropertyFormProps) => {
             const json =
                 mode === "edit" && propertyId
                     ? await landlordService.updateProperty(
-                          propertyId,
-                          buildUpdatePayload()
-                      )
+                        propertyId,
+                        buildUpdatePayload()
+                    )
                     : await landlordService.createProperty(buildPayload());
 
             if (!json?.success) {
                 throw new Error(
                     json?.message ??
-                        `Failed to ${mode === "edit" ? "update" : "create"} property`
+                    `Failed to ${mode === "edit" ? "update" : "create"} property`
                 );
             }
 
@@ -345,9 +343,11 @@ const PropertyForm = ({ mode, propertyId, initialData }: PropertyFormProps) => {
                                 <Select
                                     disabled={loadingCategories}
                                     value={form.categoryId || undefined}
-                                    onValueChange={(value) =>
-                                        updateField("categoryId", value)
-                                    }
+                                    onValueChange={(value) => {
+                                        if (value !== null) {
+                                            updateField("categoryId", value);
+                                        }
+                                    }}
                                 >
                                     <SelectTrigger id="categoryId">
                                         <SelectValue

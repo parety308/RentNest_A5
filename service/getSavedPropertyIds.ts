@@ -8,7 +8,7 @@ export const getSavedPropertyIds = async (): Promise<string[]> => {
 
     if (!accessToken) return [];
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/properties/saved`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/properties/saved`, {
         headers: { Cookie: `accessToken=${accessToken}` },
         cache: "no-store",
     });

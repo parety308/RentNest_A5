@@ -29,7 +29,7 @@ interface Property {
     id: string;
     title?: string;
     status?: string;
-    available?: boolean; // FIX: matches Prisma field name "available", not "isAvailable"
+    available?: boolean; 
 }
 
 interface Rental {
@@ -95,9 +95,7 @@ const AdminDashboard = () => {
         loadDashboard();
     }, []);
 
-    // -----------------------------
-    // Statistics
-    // -----------------------------
+
 
     const totalProperties = properties.length;
 
@@ -138,15 +136,9 @@ const AdminDashboard = () => {
         },
     ];
 
-    // -----------------------------
-    // Recent Rentals
-    // -----------------------------
 
     const recentRentals = [...rentals].slice(0, 5);
 
-    // -----------------------------
-    // Property Overview
-    // -----------------------------
 
     const availableProperties = properties.filter(
         // FIX: Prisma field is "available", "isAvailable" never existed

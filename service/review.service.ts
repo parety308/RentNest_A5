@@ -21,9 +21,7 @@ export interface ReviewResponse {
 }
 
 export const reviewService = {
-  // Backend: POST /reviews (auth: TENANT | ADMIN)
-  // Do NOT send tenantId (set server-side from req.user.id) or
-  // rentalRequestId (not a field on the Review model — Prisma rejects it).
+
   createReview: async (
     payload: CreateReviewPayload
   ): Promise<ReviewResponse> => {

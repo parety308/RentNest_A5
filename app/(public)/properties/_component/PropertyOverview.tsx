@@ -44,8 +44,6 @@ export default function PropertyOverview({ property }: Props) {
     },
     {
       icon: Building2,
-      // was property.propertyType, which doesn't exist on this model —
-      // property type now comes from the category relation
       label: property.category.name,
     },
     {

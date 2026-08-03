@@ -15,7 +15,7 @@ export async function CreateRentalRequest(
     }
 
     const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/rentals`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/rentals`,
         {
             method: "POST",
             headers: {

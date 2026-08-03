@@ -23,8 +23,7 @@ export default function ShareButton() {
         setTimeout(() => setCopied(false), 2000);
       }
     } catch (error) {
-      // navigator.share rejects when the user just cancels the sheet —
-      // nothing to surface to the user, but don't let it crash.
+
       console.error(error);
     }
   }

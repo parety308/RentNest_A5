@@ -110,24 +110,7 @@ const PropertyFilters = ({
         );
     };
 
-    const updateSort = (value: string) => {
-
-        const params = new URLSearchParams(
-            searchParams.toString()
-        );
-
-
-        if (value === "recommended") {
-            params.delete("sort");
-        } else {
-            params.set("sort", value);
-        }
-
-
-        router.push(
-            `/properties?${params.toString()}`
-        );
-    };
+ 
 
 
     return (

@@ -18,8 +18,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Field, FieldError } from "@/components/ui/field";
 
-import { rentalRequestSchema } from "@/app/lib/validations/rental";
+
 import { CreateRentalRequest } from "@/service/rental.service";
+import { rentalRequestSchema } from "@/lib/validations/rental";
 
 interface Props {
     open: boolean;

@@ -24,10 +24,7 @@ const PropertyUpdatePage = () => {
             setError(null);
 
             try {
-                // NOTE: assumes landlordService.getProperty(id) exists.
-                // If not, add something like:
-                //   getProperty: async (id: string) =>
-                //     apiClient(`/landlord/properties/${id}`),
+            
                 const json = await landlordService.getProperty(propertyId);
 
                 if (!json?.success) {

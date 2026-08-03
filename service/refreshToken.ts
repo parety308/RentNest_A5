@@ -7,21 +7,21 @@ export const getNewAccessToken = async () => {
 
     const refreshToken = cookieStore.get("refreshToken")?.value || null;
 
-    if(!refreshToken){
+    if (!refreshToken) {
         // throw new Error("User Not Logged In!");
 
         return {
-            success : false,
-            message : "Refresh token not found!"
+            success: false,
+            message: "Refresh token not found!"
         }
     }
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/refresh-token`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/refresh-token`, {
         method: "POST",
-        headers : {
-            Cookie : `refreshToken=${refreshToken}`
+        headers: {
+            Cookie: `refreshToken=${refreshToken}`
         },
-        cache : "no-cache",
+        cache: "no-cache",
     });
 
     const result = await res.json();

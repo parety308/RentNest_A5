@@ -7,12 +7,10 @@ import {
     Bath,
     Bed,
     Building2,
-    Loader2,
     MapPin,
     Pencil,
     Plus,
     Ruler,
-    Trash2,
 } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";

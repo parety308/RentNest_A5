@@ -39,7 +39,7 @@ export const LoginAction = async (
     }
 
     const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/login`,
         {
             method: "POST",
             headers: {
