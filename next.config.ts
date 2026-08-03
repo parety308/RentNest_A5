@@ -1,5 +1,14 @@
 import type { NextConfig } from "next";
 
+const backendApiUrl =
+  process.env.BACKEND_API_URL ?? process.env.NEXT_PUBLIC_BACKEND_URL;
+
+if (!backendApiUrl) {
+  throw new Error(
+    "Missing BACKEND_API_URL (or NEXT_PUBLIC_BACKEND_URL) env var — required for API rewrites."
+  );
+}
+
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
@@ -18,7 +27,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: `${process.env.BACKEND_API_URL}/:path*`,
+        destination: `${backendApiUrl}/:path*`,
       },
     ];
   },
