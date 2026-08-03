@@ -5,6 +5,7 @@ import Image from "next/image";
 import { ImagePlus, Loader2, UploadCloud, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { uploadService } from "@/service/uploadService";
 
 interface ImageDropzoneProps {
     images: string[];
@@ -13,15 +14,13 @@ interface ImageDropzoneProps {
     disabled?: boolean;
 }
 
-const readAsDataUrl = (file: File) =>
-    new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-    });
+const ACCEPTED_TYPES = [
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/avif",
+];
 
-const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/avif"];
 const MAX_FILE_SIZE_MB = 5;
 
 export default function ImageDropzone({
@@ -31,6 +30,7 @@ export default function ImageDropzone({
     disabled = false,
 }: ImageDropzoneProps) {
     const inputRef = useRef<HTMLInputElement>(null);
+
     const [isDragging, setIsDragging] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -43,8 +43,14 @@ export default function ImageDropzone({
         const files = Array.from(fileList);
 
         const valid = files.filter((file) => {
-            if (!ACCEPTED_TYPES.includes(file.type)) return false;
-            if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) return false;
+            if (!ACCEPTED_TYPES.includes(file.type)) {
+                return false;
+            }
+
+            if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+                return false;
+            }
+
             return true;
         });
 
@@ -61,7 +67,10 @@ export default function ImageDropzone({
             );
         }
 
-        const toProcess = valid.slice(0, Math.max(remainingSlots, 0));
+        const toProcess = valid.slice(
+            0,
+            Math.max(remainingSlots, 0)
+        );
 
         if (toProcess.length === 0) {
             setError(`You can upload up to ${maxImages} images.`);
@@ -69,49 +78,76 @@ export default function ImageDropzone({
         }
 
         setUploading(true);
+
         try {
-            // Replace readAsDataUrl(file) with a real upload call
-            // (e.g. uploadImage(file) -> returns a hosted URL) once
-            // a backend upload endpoint exists. The rest of the flow
-            // stays identical since we just append resulting URLs.
-            const uploaded = await Promise.all(toProcess.map(readAsDataUrl));
+            // Upload files and receive hosted Cloudinary URLs
+            const uploaded = await uploadService.uploadImages(toProcess);
+
+            // Add uploaded URLs to existing images
             onChange([...images, ...uploaded]);
-        } catch {
-            setError("Something went wrong reading those images.");
+        } catch (error) {
+            console.error("Image upload failed:", error);
+
+            setError(
+                "Something went wrong while uploading the images."
+            );
         } finally {
             setUploading(false);
         }
     };
 
-    const handleInputChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    const handleInputChange = async (
+        e: ChangeEvent<HTMLInputElement>
+    ) => {
         if (e.target.files && e.target.files.length > 0) {
             await processFiles(e.target.files);
         }
+
+        // Reset input so the same file can be selected again
         e.target.value = "";
     };
 
-    const handleDrop = async (e: DragEvent<HTMLDivElement>) => {
+    const handleDrop = async (
+        e: DragEvent<HTMLDivElement>
+    ) => {
         e.preventDefault();
         setIsDragging(false);
-        if (disabled || uploading) return;
-        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+
+        if (disabled || uploading) {
+            return;
+        }
+
+        if (
+            e.dataTransfer.files &&
+            e.dataTransfer.files.length > 0
+        ) {
             await processFiles(e.dataTransfer.files);
         }
     };
 
-    const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
+    const handleDragOver = (
+        e: DragEvent<HTMLDivElement>
+    ) => {
         e.preventDefault();
-        if (disabled || uploading) return;
+
+        if (disabled || uploading) {
+            return;
+        }
+
         setIsDragging(true);
     };
 
-    const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
+    const handleDragLeave = (
+        e: DragEvent<HTMLDivElement>
+    ) => {
         e.preventDefault();
         setIsDragging(false);
     };
 
     const removeImage = (index: number) => {
-        onChange(images.filter((_, i) => i !== index));
+        onChange(
+            images.filter((_, i) => i !== index)
+        );
     };
 
     return (
@@ -120,9 +156,20 @@ export default function ImageDropzone({
             <div
                 role="button"
                 tabIndex={0}
-                onClick={() => !disabled && !uploading && inputRef.current?.click()}
+                onClick={() =>
+                    !disabled &&
+                    !uploading &&
+                    remainingSlots > 0 &&
+                    inputRef.current?.click()
+                }
                 onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
+                    if (
+                        (e.key === "Enter" || e.key === " ") &&
+                        !disabled &&
+                        !uploading &&
+                        remainingSlots > 0
+                    ) {
+                        e.preventDefault();
                         inputRef.current?.click();
                     }
                 }}
@@ -134,7 +181,9 @@ export default function ImageDropzone({
                     isDragging
                         ? "border-primary bg-primary/5"
                         : "border-input hover:border-primary/50 hover:bg-muted/40",
-                    (disabled || uploading || remainingSlots <= 0) &&
+                    (disabled ||
+                        uploading ||
+                        remainingSlots <= 0) &&
                         "pointer-events-none opacity-60"
                 )}
             >
@@ -144,47 +193,64 @@ export default function ImageDropzone({
                     accept={ACCEPTED_TYPES.join(",")}
                     multiple
                     className="hidden"
-                    disabled={disabled || uploading}
+                    disabled={
+                        disabled ||
+                        uploading ||
+                        remainingSlots <= 0
+                    }
                     onChange={handleInputChange}
                 />
 
                 {uploading ? (
                     <>
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                        <p className="text-sm font-medium">Processing images...</p>
+
+                        <p className="text-sm font-medium">
+                            Uploading images...
+                        </p>
                     </>
                 ) : (
                     <>
                         <div className="rounded-full bg-primary/10 p-3">
                             <UploadCloud className="h-6 w-6 text-primary" />
                         </div>
+
                         <p className="text-sm font-medium">
                             Drag & drop images here, or{" "}
                             <span className="text-primary underline underline-offset-2">
                                 browse
                             </span>
                         </p>
+
                         <p className="text-xs text-muted-foreground">
-                            JPG, PNG, WEBP or AVIF, up to {MAX_FILE_SIZE_MB}MB each
+                            JPG, PNG, WEBP or AVIF, up to{" "}
+                            {MAX_FILE_SIZE_MB}MB each
                             {" · "}
                             {remainingSlots > 0
-                                ? `${remainingSlots} slot${remainingSlots === 1 ? "" : "s"} left`
+                                ? `${remainingSlots} slot${
+                                      remainingSlots === 1
+                                          ? ""
+                                          : "s"
+                                  } left`
                                 : "Limit reached"}
                         </p>
                     </>
                 )}
             </div>
 
+            {/* Error */}
             {error && (
-                <p className="text-sm font-medium text-destructive">{error}</p>
+                <p className="text-sm font-medium text-destructive">
+                    {error}
+                </p>
             )}
 
-            {/* Previews */}
+            {/* Image previews */}
             {images.length > 0 && (
                 <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
                     {images.map((url, i) => (
                         <div
-                            key={i}
+                            key={`${url}-${i}`}
                             className="group relative aspect-square overflow-hidden rounded-lg border bg-muted"
                         >
                             <Image
@@ -193,37 +259,48 @@ export default function ImageDropzone({
                                 fill
                                 sizes="120px"
                                 className="object-cover"
-                                unoptimized={url.startsWith("data:")}
                             />
 
+                            {/* Cover badge */}
                             {i === 0 && (
                                 <span className="absolute left-1.5 top-1.5 rounded-full bg-primary px-2 py-0.5 text-[10px] font-medium text-primary-foreground shadow">
                                     Cover
                                 </span>
                             )}
 
+                            {/* Remove button */}
                             <button
                                 type="button"
                                 onClick={() => removeImage(i)}
-                                disabled={disabled || uploading}
+                                disabled={
+                                    disabled ||
+                                    uploading
+                                }
                                 className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity hover:bg-black/80 group-hover:opacity-100 disabled:pointer-events-none"
-                                aria-label={`Remove image ${i + 1}`}
+                                aria-label={`Remove image ${
+                                    i + 1
+                                }`}
                             >
                                 <X className="h-3.5 w-3.5" />
                             </button>
                         </div>
                     ))}
 
-                    {/* Add-more tile */}
+                    {/* Add more tile */}
                     {remainingSlots > 0 && !uploading && (
                         <button
                             type="button"
-                            onClick={() => inputRef.current?.click()}
+                            onClick={() =>
+                                inputRef.current?.click()
+                            }
                             disabled={disabled}
                             className="flex aspect-square flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary disabled:pointer-events-none disabled:opacity-60"
                         >
                             <ImagePlus className="h-5 w-5" />
-                            <span className="text-xs">Add more</span>
+
+                            <span className="text-xs">
+                                Add more
+                            </span>
                         </button>
                     )}
                 </div>
@@ -231,3 +308,4 @@ export default function ImageDropzone({
         </div>
     );
 }
+
