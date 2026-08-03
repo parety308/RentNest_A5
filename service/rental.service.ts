@@ -1,11 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
-
-interface CreateRentalRequestPayload {
-    propertyId: string;
-    message: string;
-}
+import { CreateRentalRequestPayload } from "@/types/rental.type";
 
 export async function CreateRentalRequest(
     payload: CreateRentalRequestPayload
