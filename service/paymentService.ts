@@ -48,7 +48,7 @@ export const paymentService = {
 
 
     getPaymentHistory: async () => {
-        return apiClient("/payments");
+        return apiClient("/payments/history");
     },
 
 
