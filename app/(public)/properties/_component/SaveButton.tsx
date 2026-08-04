@@ -4,7 +4,8 @@ import { useState } from "react";
 import { Heart } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-
+import { ApiError } from "@/service/client";
+import { useApiErrorHandler } from "@/service/useApiErrorHandler";
 import { Button } from "@/components/ui/button";
 import { savedService } from "@/service/savedService";
 
