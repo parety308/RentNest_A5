@@ -29,7 +29,7 @@ interface Property {
     id: string;
     title?: string;
     status?: string;
-    available?: boolean; 
+    available?: boolean;
 }
 
 interface Rental {
@@ -39,6 +39,7 @@ interface Rental {
         name?: string;
     };
     property?: {
+        id?: string;
         title?: string;
     };
 }
@@ -147,13 +148,22 @@ const AdminDashboard = () => {
             property.status?.toLowerCase() === "available"
     ).length;
 
-    const rentedProperties = properties.filter(
-        (property) => property.status?.toLowerCase() === "rented"
-    ).length;
+    const rentedPropertyIds = new Set(
+        rentals
+            .filter((r) => (r.status || "").toUpperCase() === "COMPLETED")
+            .map((r) => r.property?.id)
+            .filter(Boolean)
+    );
 
-    const pendingProperties = properties.filter(
-        (property) => property.status?.toLowerCase() === "pending"
-    ).length;
+    const pendingPropertyIds = new Set(
+        rentals
+            .filter((r) => (r.status || "").toUpperCase() === "PENDING")
+            .map((r) => r.property?.id)
+            .filter(Boolean)
+    );
+
+    const rentedProperties = rentedPropertyIds.size;
+    const pendingProperties = pendingPropertyIds.size;
 
     const propertyTotal = properties.length || 1;
 
@@ -164,49 +174,49 @@ const AdminDashboard = () => {
     const pendingPercentage = (pendingProperties / propertyTotal) * 100;
 
     if (loading) {
-    return (
-        <div className="space-y-8">
-            <div className="space-y-2">
-                <Skeleton className="h-7 w-56" />
-                <Skeleton className="h-4 w-72" />
-            </div>
+        return (
+            <div className="space-y-8">
+                <div className="space-y-2">
+                    <Skeleton className="h-7 w-56" />
+                    <Skeleton className="h-4 w-72" />
+                </div>
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {Array.from({ length: 4 }).map((_, i) => (
-                    <Card key={i}>
-                        <CardHeader className="flex flex-row items-center justify-between pb-2">
-                            <Skeleton className="h-4 w-24" />
-                            <Skeleton className="h-5 w-5 rounded" />
-                        </CardHeader>
-                        <CardContent className="space-y-2">
-                            <Skeleton className="h-7 w-12" />
-                            <Skeleton className="h-3 w-28" />
-                        </CardContent>
-                    </Card>
-                ))}
-            </div>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                        <Card key={i}>
+                            <CardHeader className="flex flex-row items-center justify-between pb-2">
+                                <Skeleton className="h-4 w-24" />
+                                <Skeleton className="h-5 w-5 rounded" />
+                            </CardHeader>
+                            <CardContent className="space-y-2">
+                                <Skeleton className="h-7 w-12" />
+                                <Skeleton className="h-3 w-28" />
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
 
-            <div className="grid gap-6 lg:grid-cols-2">
-                {Array.from({ length: 2 }).map((_, i) => (
-                    <Card key={i}>
-                        <CardHeader><Skeleton className="h-5 w-48" /></CardHeader>
-                        <CardContent className="space-y-4">
-                            {Array.from({ length: 3 }).map((_, j) => (
-                                <div key={j} className="flex items-center justify-between">
-                                    <div className="space-y-2">
-                                        <Skeleton className="h-4 w-32" />
-                                        <Skeleton className="h-3 w-24" />
+                <div className="grid gap-6 lg:grid-cols-2">
+                    {Array.from({ length: 2 }).map((_, i) => (
+                        <Card key={i}>
+                            <CardHeader><Skeleton className="h-5 w-48" /></CardHeader>
+                            <CardContent className="space-y-4">
+                                {Array.from({ length: 3 }).map((_, j) => (
+                                    <div key={j} className="flex items-center justify-between">
+                                        <div className="space-y-2">
+                                            <Skeleton className="h-4 w-32" />
+                                            <Skeleton className="h-3 w-24" />
+                                        </div>
+                                        <Skeleton className="h-6 w-16 rounded-full" />
                                     </div>
-                                    <Skeleton className="h-6 w-16 rounded-full" />
-                                </div>
-                            ))}
-                        </CardContent>
-                    </Card>
-                ))}
+                                ))}
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
             </div>
-        </div>
-    );
-}
+        );
+    }
     return (
         <div className="space-y-8">
             {/* Header */}
@@ -287,14 +297,13 @@ const AdminDashboard = () => {
                                             </div>
 
                                             <span
-                                                className={`rounded-full px-3 py-1 text-xs font-medium ${
-                                                    status === "pending"
+                                                className={`rounded-full px-3 py-1 text-xs font-medium ${status === "pending"
                                                         ? "bg-yellow-100 text-yellow-700"
                                                         : status === "approved" ||
                                                             status === "active"
-                                                          ? "bg-green-100 text-green-700"
-                                                          : "bg-muted text-muted-foreground"
-                                                }`}
+                                                            ? "bg-green-100 text-green-700"
+                                                            : "bg-muted text-muted-foreground"
+                                                    }`}
                                             >
                                                 {rental.status || "Pending"}
                                             </span>
