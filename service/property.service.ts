@@ -11,24 +11,39 @@ export interface PropertyResponse {
     };
 }
 
+const emptyResponse: PropertyResponse = {
+    data: [],
+    meta: { page: 1, limit: 9, total: 0, totalPage: 1 },
+};
+
 export async function getProperties(
     query?: PropertyQuery
 ): Promise<PropertyResponse> {
-    const params = new URLSearchParams();
+    try {
+        const params = new URLSearchParams();
 
-    Object.entries(query || {}).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== "") {
-            params.append(key, String(value));
+        Object.entries(query || {}).forEach(([key, value]) => {
+            if (value !== undefined && value !== null && value !== "") {
+                params.append(key, String(value));
+            }
+        });
+
+        const url = params.toString()
+            ? `/properties?${params.toString()}`
+            : "/properties";
+
+        const response = await apiClient(url);
+
+        // Guard against a malformed/empty backend response shape too
+        if (!response?.data) {
+            return emptyResponse;
         }
-    });
 
-    const url = params.toString()
-        ? `/properties?${params.toString()}`
-        : "/properties";
-
-    const response = await apiClient(url);
-
-    return response.data;
+        return response.data;
+    } catch (error) {
+        console.error("Failed to fetch properties:", error);
+        return emptyResponse;
+    }
 }
 
 export async function getPropertyById(
@@ -44,4 +59,3 @@ export async function getPropertyById(
         return null;
     }
 }
-
