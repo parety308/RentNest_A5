@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
 
 import { RentalRequest, RequestStatus } from "@/types/rental.type";
 import { getMyPendingRequests } from "@/service/tenant.service";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useApiErrorHandler } from "@/service/useApiErrorHandler";
 
 const statusStyles: Record<RequestStatus, string> = {
     PENDING: "bg-yellow-100 text-yellow-700",
@@ -21,17 +21,20 @@ const MyRentalRequests = () => {
     const [requests, setRequests] = useState<RentalRequest[]>([]);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
+    const handleApiError = useApiErrorHandler();
+
     useEffect(() => {
         (async () => {
             try {
                 const data = await getMyPendingRequests();
                 setRequests(data);
             } catch (err) {
-                toast.error(err instanceof Error ? err.message : "Failed to load requests");
+                handleApiError(err, "Failed to load requests");
             } finally {
                 setLoading(false);
             }
         })();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     if (loading) {
