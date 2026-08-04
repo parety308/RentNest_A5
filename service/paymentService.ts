@@ -30,7 +30,7 @@ export const paymentService = {
     createPayment: async (
         data: CreatePaymentPayload
     ) => {
-        return apiClient("/payment/create", {
+        return apiClient("/payments/create", {
             method: "POST",
             body: JSON.stringify(data),
         }) as Promise<CreatePaymentResponse>;
@@ -40,7 +40,7 @@ export const paymentService = {
     verifyPayment: async (
         data: VerifyPaymentPayload
     ) => {
-        return apiClient("/payment/verify", {
+        return apiClient("/payments/verify", {
             method: "POST",
             body: JSON.stringify(data),
         }) as Promise<VerifyPaymentResponse>;
@@ -48,14 +48,14 @@ export const paymentService = {
 
 
     getPaymentHistory: async () => {
-        return apiClient("/payment");
+        return apiClient("/payments");
     },
 
 
     getPaymentDetails: async (
         id: string
     ) => {
-        return apiClient(`/payment/${id}`);
+        return apiClient(`/payments/${id}`);
     },
 
 };
