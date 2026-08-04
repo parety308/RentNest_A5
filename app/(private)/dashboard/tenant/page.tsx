@@ -7,53 +7,20 @@ import { toast } from "sonner";
 
 import { RentalRequest } from "@/types/rental.type";
 import { getMyRentalRequests } from "@/service/tenant.service";
-import { paymentService } from "@/service/paymentService";
 
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-
-interface Payment {
-  id: string;
-  transactionId: string;
-  amount: number;
-  provider: "STRIPE";
-  status: "PENDING" | "COMPLETED" | "FAILED";
-  paidAt: string | null;
-  createdAt: string;
-  rentalRequest: {
-    id: string;
-    property?: {
-      title: string;
-    };
-  };
-}
-
-const statusVariant = {
-  PENDING: "secondary",
-  COMPLETED: "default",
-  FAILED: "destructive",
-} as const;
 
 const TenantDashboard = () => {
   const [requests, setRequests] = useState<RentalRequest[]>([]);
-  const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
       try {
-        const [requestsData, paymentsRes] = await Promise.all([
-          getMyRentalRequests(),
-          paymentService.getPaymentHistory(),
-        ]);
-
-        setRequests(requestsData);
-
-        if (paymentsRes?.success) {
-          setPayments(paymentsRes.data ?? []);
-        }
+        const data = await getMyRentalRequests();
+        setRequests(data);
       } catch (err) {
         toast.error(
           err instanceof Error
@@ -80,14 +47,6 @@ const TenantDashboard = () => {
         new Date(a.createdAt).getTime()
     )
     .slice(0, 5);
-
-  const recentPayments = [...payments]
-    .sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() -
-        new Date(a.createdAt).getTime()
-    )
-    .slice(0, 3);
 
   if (loading) {
     return (
@@ -127,7 +86,7 @@ const TenantDashboard = () => {
         </div>
       </div>
     );
-  }
+}
 
   return (
     <div className="space-y-8 p-6">
@@ -169,54 +128,28 @@ const TenantDashboard = () => {
         ))}
       </div>
 
-      {/* Recent Payments */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Receipt className="h-4 w-4" />
-            Recent Payments
-          </CardTitle>
-          <Link
-            href="/dashboard/tenant/payment/history"
-            className="text-sm text-primary hover:underline"
-          >
-            View all
-          </Link>
-        </CardHeader>
-
-        <CardContent>
-          {recentPayments.length === 0 ? (
-            <p className="py-6 text-center text-sm text-muted-foreground">
-              No payments yet.
-            </p>
-          ) : (
-            <div className="divide-y">
-              {recentPayments.map((payment) => (
-                <div
-                  key={payment.id}
-                  className="flex items-center justify-between py-3 text-sm"
-                >
-                  <div>
-                    <p className="font-medium">
-                      {payment.rentalRequest.property?.title ?? "Property"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(payment.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <span className="font-semibold">
-                      ${Number(payment.amount).toFixed(2)}
-                    </span>
-                    <Badge variant={statusVariant[payment.status]}>
-                      {payment.status}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
+        <CardContent className="flex items-center justify-between py-6">
+          <div className="flex items-center gap-4">
+            <div className="rounded-full bg-primary/10 p-3">
+              <Receipt className="h-6 w-6 text-primary" />
             </div>
-          )}
+
+            <div>
+              <h3 className="font-semibold">
+                Payment History
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                View all your completed and pending payments.
+              </p>
+            </div>
+          </div>
+
+          <Button asChild variant="outline">
+            <Link href="/dashboard/tenant/payment/history">
+              View
+            </Link>
+          </Button>
         </CardContent>
       </Card>
 
