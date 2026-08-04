@@ -33,7 +33,7 @@ const statusVariant = {
 export default function PaymentHistoryPage() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
-
+  const [error, setError] = useState<string | null>(null);
   useEffect(() => {
     const loadPayments = async () => {
       try {
@@ -42,6 +42,9 @@ export default function PaymentHistoryPage() {
         if (res.success) {
           setPayments(res.data ?? []);
         }
+      } catch (err) {
+        console.error("Failed to load payment history:", err);
+        setError(err instanceof Error ? err.message : "Failed to load payments");
       } finally {
         setLoading(false);
       }
@@ -77,7 +80,7 @@ export default function PaymentHistoryPage() {
         </Card>
       </div>
     );
-}
+  }
 
   return (
     <div className="space-y-8">
