@@ -27,9 +27,6 @@ import {
 } from "@/service/landlordService";
 
 import ImageDropzone from "./ImageDropzone";
-import { toast } from "sonner";
-import { propertySchema } from "@/lib/validations/property";
-import { useApiErrorHandler } from "@/service/useApiErrorHandler";
 
 
 export interface PropertyFormInitialData {
@@ -120,8 +117,7 @@ const PropertyForm = ({ mode, propertyId, initialData }: PropertyFormProps) => {
     const [loadingCategories, setLoadingCategories] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-    const handleApiError = useApiErrorHandler();
+
 
     const [syncedId, setSyncedId] = useState<string | undefined>(
         initialData?.id
@@ -206,53 +202,39 @@ const PropertyForm = ({ mode, propertyId, initialData }: PropertyFormProps) => {
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-        setError(null)
-        setFieldErrors({});
+        setError(null);
 
-        const parsed = propertySchema.safeParse({
-            title: form.title,
-            description: form.description,
-            address: form.address,
-            neighborhood: form.neighborhood,
-            city: form.city,
-            state: form.state,
-            categoryId: form.categoryId,
-            price: form.price,
-            bedrooms: form.bedrooms || 0,
-            bathrooms: form.bathrooms || 0,
-            sqft: form.sqft,
-            images: parseImages(),
-            amenities: parseAmenities(),
-            available: form.available,
-            availableFrom: form.availableFrom || null,
-        });
+        if (!form.categoryId) {
+            setError("Please select a category.");
+            return;
+        }
 
-        if (!parsed.success) {
-            const errors: Record<string, string> = {};
-            for (const issue of parsed.error.issues) {
-                const key = issue.path[0] as string;
-                if (!errors[key]) errors[key] = issue.message;
-            }
-            setFieldErrors(errors);
-            toast.error("Please fix the highlighted fields.");
+        if (parseImages().length === 0) {
+            setError("Please upload at least one property image.");
             return;
         }
 
         setSubmitting(true);
 
         try {
-            const json = mode === "edit" && propertyId
-                ? await landlordService.updateProperty(propertyId, buildUpdatePayload())
-                : await landlordService.createProperty(buildPayload());
+            const json =
+                mode === "edit" && propertyId
+                    ? await landlordService.updateProperty(
+                        propertyId,
+                        buildUpdatePayload()
+                    )
+                    : await landlordService.createProperty(buildPayload());
 
             if (!json?.success) {
-                throw new Error(json?.message ?? `Failed to ${mode} property`);
+                throw new Error(
+                    json?.message ??
+                    `Failed to ${mode === "edit" ? "update" : "create"} property`
+                );
             }
 
-            toast.success(mode === "edit" ? "Property updated" : "Property created");
             router.push("/dashboard/landlord/properties");
         } catch (err) {
-            handleApiError(err, "Something went wrong while saving the property.");
+            setError(err instanceof Error ? err.message : "Something went wrong");
         } finally {
             setSubmitting(false);
         }
@@ -295,12 +277,10 @@ const PropertyForm = ({ mode, propertyId, initialData }: PropertyFormProps) => {
                                 <Label htmlFor="title">Title</Label>
                                 <Input
                                     id="title"
+                                    required
                                     value={form.title}
                                     onChange={(e) => updateField("title", e.target.value)}
                                 />
-                                {fieldErrors.title && (
-                                    <p className="text-sm text-destructive">{fieldErrors.title}</p>
-                                )}
                             </div>
 
                             <div className="space-y-1.5 sm:col-span-2">

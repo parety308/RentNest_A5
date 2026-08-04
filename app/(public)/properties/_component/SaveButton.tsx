@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Heart } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { ApiError } from "@/service/client";
+
 import { Button } from "@/components/ui/button";
 import { savedService } from "@/service/savedService";
 
@@ -40,15 +40,13 @@ export default function SaveButton({
     } catch (error) {
       setSaved(!next); // revert on failure
 
-      if (error instanceof ApiError && error.status === 401) {
+      const message = error instanceof Error ? error.message : "";
+
+      if (message.includes("401")) {
         toast.error("Please sign in to save properties");
         router.push("/auth/login");
       } else {
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "Couldn't update saved properties. Please try again."
-        );
+        toast.error("Couldn't update saved properties. Please try again.");
       }
     } finally {
       setLoading(false);
@@ -57,7 +55,6 @@ export default function SaveButton({
 
   return (
     <Button
-      type="button"
       variant="outline"
       size="icon"
       onClick={handleToggle}

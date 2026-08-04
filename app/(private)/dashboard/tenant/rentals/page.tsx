@@ -4,13 +4,13 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Star } from "lucide-react";
+import { toast } from "sonner";
 
 import { RentalRequest } from "@/types/rental.type";
 import { getMyActiveRentals } from "@/service/tenant.service";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import ReviewForm from "./_component/ReviewForm";
-import { useApiErrorHandler } from "@/service/useApiErrorHandler";
 
 const statusStyles: Record<string, string> = {
   ACTIVE: "bg-[#16523D]/10 text-[#16523D]",
@@ -22,7 +22,6 @@ const MyRentals = () => {
   const [loading, setLoading] = useState(true);
   const [openReviewId, setOpenReviewId] = useState<string | null>(null);
   const [reviewedIds, setReviewedIds] = useState<Set<string>>(new Set());
-  const handleApiError = useApiErrorHandler();
 
   useEffect(() => {
     (async () => {
@@ -30,12 +29,11 @@ const MyRentals = () => {
         const data = await getMyActiveRentals();
         setRentals(data);
       } catch (err) {
-        handleApiError(err, "Failed to load rentals");
+        toast.error(err instanceof Error ? err.message : "Failed to load rentals");
       } finally {
         setLoading(false);
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (loading) {
