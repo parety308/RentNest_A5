@@ -17,22 +17,24 @@ import PropertySort from "./_component/PropertySort";
 import PropertyFilters from "./_component/PropertyFilters";
 import PropertyCard from "./_component/PropertyCard";
 
+const PAGE_SIZE = 9;
 
 const PropertiesPage = async ({ searchParams }: Props) => {
 
     const params = await searchParams;
 
     const page = Number(params.page) || 1;
-    const limit = "all";
 
-
+    // Paginated set — this is what actually renders as the property grid
     const { data: properties, meta } = await getProperties({
         ...params,
         page,
-        limit,
+        limit: PAGE_SIZE,
     });
 
-
+    // Full unfiltered-by-page set — used only to build filter option lists
+    // (cities, categories, price range) so they don't shift depending on
+    // which page the user is currently viewing.
     const { data: allProperties } = await getProperties({ limit: "all" });
 
     const savedIds = await getSavedPropertyIds(); 
@@ -61,17 +63,18 @@ const PropertiesPage = async ({ searchParams }: Props) => {
     ];
 
 
-    const minPrice =properties.length > 0
+    const minPrice = allProperties.length > 0
             ? Math.min(
-                ...properties.map(
+                ...allProperties.map(
                     (property) => property.price
                 )
             )
             : 0;
 
 
-    const maxPrice = properties.length > 0? Math.max(
-                ...properties.map(
+    const maxPrice = allProperties.length > 0
+            ? Math.max(
+                ...allProperties.map(
                     (property) => property.price
                 )
             )
@@ -143,7 +146,7 @@ const PropertiesPage = async ({ searchParams }: Props) => {
                         <h1 className="text-3xl font-bold">
                             Browse Rentals
                         </h1>
-                        <p> {properties.length} homes match your filters</p>
+                        <p>{meta.total} homes match your filters</p>
                         <p className=" max-w-2xl text-muted-foreground">
                             Discover verified apartments, houses and condos from trusted landlords.
                         </p>
