@@ -4,7 +4,7 @@
 
 RentNest is a full-stack rental property marketplace. Landlords list and manage properties, tenants browse listings and submit rental requests with secure payments, and admins moderate the platform. The project is split into two separate applications — a Next.js frontend and an Express/Prisma backend — deployed as two independent services.
 
----
+--- 
 
 ## Table of Contents
 
@@ -21,16 +21,16 @@ RentNest is a full-stack rental property marketplace. Landlords list and manage 
 - [API Route Map](#api-route-map)
 - [Known Gotchas](#known-gotchas)
 
----
+--- 
 
-## Architecture
+## Architecture 🏗️
 
 RentNest is **two separate deployments**, not a monorepo served from one origin:
 
-| Service | Stack | Example URL |
-|---|---|---|
-| Frontend | Next.js 16 (App Router, Turbopack) | `https://rentnest-a5.onrender.com` |
-| Backend | Express + Prisma + PostgreSQL | `https://rentnest-a4.onrender.com` |
+| Service   | Stack                                     | Example URL                       |
+| :-------- | :---------------------------------------- | :-------------------------------- | 
+| Frontend  | Next.js 16 (App Router, Turbopack)      | `https://rentnest-a5.onrender.com` |
+| Backend   | Express + Prisma + PostgreSQL             | `https://rentnest-a4.onrender.com` |
 
 Because the two run on different hostnames, authentication cookies set by the backend are **not** automatically visible to browser `fetch` calls made from the frontend's client components. This is solved with a Next.js rewrite proxy — see [Cross-Origin Setup](#cross-origin-setup-important) below. This detail matters a lot for anyone extending the auth flow.
 
@@ -42,9 +42,9 @@ Browser
   └─ Client Components (fetch) ─► /api/* (same-origin) ─► Next.js rewrite ─► Backend
 ```
 
----
+--- 
 
-## Tech Stack
+## Tech Stack 💻
 
 **Frontend**
 - Next.js 16 (App Router, Turbopack, Server Actions)
@@ -70,23 +70,23 @@ Browser
 - Deployed on Render (two separate web services)
 - Postgres hosted via Prisma Postgres (`pooled.db.prisma.io`)
 
----
+--- 
 
-## Roles & Permissions
+## Roles & Permissions 🔑
 
-| Role | Description | Frontend Access |
-|---|---|---|
-| **Tenant** | Browses listings, submits rental requests, pays rent, leaves reviews | Public pages + `/dashboard/tenant/*` |
-| **Landlord** | Lists properties, manages availability, approves/rejects requests | Public pages + `/dashboard/landlord/*` |
-| **Admin** | Moderates users, properties, and rental requests platform-wide | `/dashboard/admin/*` |
+| Role     | Description                                                                                                | Frontend Access                           |
+| :------- | :--------------------------------------------------------------------------------------------------------- | :---------------------------------------- |
+| **Tenant** | Browses listings, submits rental requests, pays rent, leaves reviews                                       | Public pages + `/dashboard/tenant/*` |
+| **Landlord** | Lists properties, manages availability, approves/rejects requests                                          | Public pages + `/dashboard/landlord/*` |
+| **Admin**    | Moderates users, properties, and rental requests platform-wide                                             | `/dashboard/admin/*`                      |
 
 Role is chosen at registration (`TENANT` or `LANDLORD`; `ADMIN` is not self-assignable). Routes are protected both by:
 - **`proxy.ts`** (Next.js middleware) — redirects unauthenticated users, blocks role-mismatched dashboard routes, and transparently refreshes an expired access token using the refresh token cookie.
 - **Backend `auth` middleware** (`src/middlewares/auth.ts`) — verifies the JWT and checks role on every protected API route.
 
----
+--- 
 
-## Core Features
+## Core Features ✨
 
 ### Public
 - Property grid with `next/image` optimization, price, location, amenities
@@ -95,27 +95,27 @@ Role is chosen at registration (`TENANT` or `LANDLORD`; `ADMIN` is not self-assi
 - Property detail page: gallery, description, amenities, highlights, embedded map, landlord card, reviews, similar properties
 - Skeleton loaders on every data-fetching page; `error.tsx` boundaries per route group
 
-### Tenant
+### Tenant  tenants
 - Registration/login with Zod-validated forms
 - Rental request flow (sheet/modal with move-in/move-out dates + message)
 - Save/favorite properties (heart toggle, persisted via `SavedProperty` table)
 - Stripe Checkout redirect on approval, with `/payment/success` and `/payment/cancel` outcome pages
 - Dashboard: request history with status badges (`PENDING`/`APPROVED`/`REJECTED`/`ACTIVE`/`COMPLETED`), payment history, review submission after completed stays
 
-### Landlord
+### Landlord 👨‍💼
 - Dashboard overview (property count, pending requests)
 - Property CRUD with a drag-and-drop image dropzone (Cloudinary-backed upload, live previews, cover image, per-image removal)
 - Request management table with Approve/Reject/Complete actions and optimistic UI updates + toast feedback
 
-### Admin
+### Admin 🧑‍⚖️
 - Platform-wide stats overview
 - User management table: search, pagination, ban/unban (admin accounts are ban-exempt)
 - Property moderation: take down/restore listings, delete
 - View all rental requests across the platform
 
----
+--- 
 
-## Project Structure
+## Project Structure 📂
 
 ```
 app/
@@ -159,28 +159,28 @@ src/modules/
 └── upload/                # Cloudinary image upload
 ```
 
----
+--- 
 
-## Cross-Origin Setup (Important)
+## Cross-Origin Setup (Important) 🔗
 
 Frontend and backend live on different `onrender.com` subdomains, so browser-set cookies from the backend won't automatically attach to client-side `fetch` calls targeting the backend directly. This is handled as follows:
 
-1. **`next.config.ts`** rewrites `/api/:path*` on the frontend to the backend's `/api/:path*`:
-   ```ts
-   async rewrites() {
-     return [{ source: "/api/:path*", destination: `${backendApiUrl}/:path*` }];
-   }
-   ```
-2. **`service/client.ts`** (`apiClient`) is environment-aware:
-   - In the **browser**, it calls the relative `/api${endpoint}` — same-origin, so the `accessToken` cookie is attached automatically, and Next.js proxies the request server-to-server (forwarding cookies) to the backend.
-   - On the **server** (e.g. during static generation or in server components calling public endpoints like `getProperties`), it calls the backend's **absolute** URL directly, since relative URLs can't be resolved outside a browser context.
-3. **Authenticated server-side reads** (`getMe.ts`, `server-client.ts`, `getSavedPropertyIds.ts`) bypass `apiClient` entirely — they read the `accessToken` cookie via `next/headers` and forward it manually as a `Cookie` header on a direct backend fetch.
+1.  **`next.config.ts`** rewrites `/api/:path*` on the frontend to the backend's `/api/:path*`:
+    ```typescript
+    async rewrites() {
+      return [{ source: "/api/:path*", destination: `${backendApiUrl}/:path*` }];
+    }
+    ```
+2.  **`service/client.ts`** (`apiClient`) is environment-aware:
+    - In the **browser**, it calls the relative `/api${endpoint}` — same-origin, so the `accessToken` cookie is attached automatically, and Next.js proxies the request server-to-server (forwarding cookies) to the backend.
+    - On the **server** (e.g. during static generation or in server components calling public endpoints like `getProperties`), it calls the backend's **absolute** URL directly, since relative URLs can't be resolved outside a browser context.
+3.  **Authenticated server-side reads** (`getMe.ts`, `server-client.ts`, `getSavedPropertyIds.ts`) bypass `apiClient` entirely — they read the `accessToken` cookie via `next/headers` and forward it manually as a `Cookie` header on a direct backend fetch.
 
-If you ever see `401 Invalid Access Token` on client-side dashboard calls in production, check first whether `apiClient` is hitting the backend directly instead of the same-origin `/api` proxy path.
+If you ever see `401 Invalid Access Token` on client-side dashboard pages in production, check first whether `apiClient` is hitting the backend directly instead of the same-origin `/api` proxy path.
 
----
+--- 
 
-## Environment Variables
+## Environment Variables 📝
 
 ### Frontend (`.env`)
 
@@ -224,9 +224,9 @@ CLOUDINARY_API_SECRET=
 
 > ⚠️ Keep `JWT_ACCESS_EXPIRES_IN` shorter than `JWT_REFRESH_EXPIRES_IN`. If reversed, the refresh token JWT can expire while its cookie is still alive, silently breaking the token-refresh flow in `proxy.ts` after the access token's window passes.
 
----
+--- 
 
-## Getting Started Locally
+## Getting Started Locally 🚀
 
 **Backend**
 ```bash
@@ -246,9 +246,9 @@ npm run dev         # runs on http://localhost:3000
 
 Locally, set `NEXT_PUBLIC_BACKEND_URL` / `BACKEND_API_URL` to `http://localhost:5000/api`, and backend `APP_URL` to `http://localhost:3000`.
 
----
+--- 
 
-## Deployment (Render)
+## Deployment (Render) 🌐
 
 Two separate Render **Web Services**, one per app, each with its own Environment tab configured with the variables above (env vars are per-service — values in a local `.env` file are never read by Render since `.env*` is gitignored).
 
@@ -258,9 +258,9 @@ Build commands:
 
 After changing frontend env vars (especially `NEXT_PUBLIC_*`, which are inlined at build time), trigger **Clear build cache & deploy** rather than a plain redeploy.
 
----
+--- 
 
-## Database Schema Overview
+## Database Schema Overview 📊
 
 Core Prisma models (see `prisma/models/*.prisma`):
 
@@ -272,42 +272,43 @@ Core Prisma models (see `prisma/models/*.prisma`):
 - **Review** — tenant review of a property, requires a completed payment
 - **SavedProperty** — tenant favorites (many-to-many via join table)
 
----
+--- 
 
-## API Route Map
+## API Route Map 🗺️
 
-| Route | Auth | Description |
-|---|---|---|
-| `POST /api/auth/register` | Public | Create account |
-| `POST /api/auth/login` | Public | Login, sets cookies |
-| `POST /api/auth/refresh-token` | Public (refresh cookie) | Rotate access token |
-| `GET /api/auth/me` | Any role | Current user |
-| `GET /api/properties` | Public | List/filter properties |
-| `GET /api/properties/:id` | Public | Property detail |
-| `POST/DELETE /api/properties/:id/save` | Tenant/Landlord/Admin | Save/unsave |
-| `GET /api/properties/saved` | Tenant/Landlord/Admin | Saved list |
-| `POST /api/landlord/properties` | Landlord/Admin | Create listing |
-| `GET/PUT/DELETE /api/landlord/properties/:id` | Landlord/Admin | Manage own listing |
-| `GET /api/landlord/requests` | Landlord/Admin | Incoming requests |
-| `PATCH /api/landlord/requests/:id` | Landlord/Admin | Approve/reject/complete |
-| `POST /api/rentals` | Tenant/Admin | Submit rental request |
-| `GET /api/rentals`, `/api/rentals/:id` | Tenant/Admin | Own requests |
-| `POST /api/payments/create` | Tenant/Admin | Start Stripe Checkout |
-| `POST /api/payments/confirm` | Stripe webhook | Confirm payment |
-| `POST /api/payments/verify` | Tenant/Admin | Verify from success page |
-| `GET /api/payments` | Tenant/Admin | Payment history |
-| `POST /api/reviews` | Tenant/Admin | Submit review |
-| `POST /api/uploads/images` | Landlord/Admin | Upload property images to Cloudinary |
-| `GET/PATCH /api/admin/users`, `/api/admin/users/:id` | Admin | User management |
-| `GET/PATCH/DELETE /api/admin/properties*` | Admin | Property moderation |
-| `GET /api/admin/rentals` | Admin | All rental requests |
+| Route                               | Auth                  | Description                                    |
+| :---------------------------------- | :-------------------- | :--------------------------------------------- |
+| `POST /api/auth/register`         | Public                | Create account                                 |
+| `POST /api/auth/login`            | Public                | Login, sets cookies                            |
+| `POST /api/auth/refresh-token`    | Public (refresh cookie) | Rotate access token                            |
+| `GET /api/auth/me`                | Any role              | Current user                                   |
+| `GET /api/properties`             | Public                | List/filter properties                         |
+| `GET /api/properties/:id`         | Public                | Property detail                                |
+| `POST/DELETE /api/properties/:id/save` | Tenant/Landlord/Admin | Save/unsave                                    |
+| `GET /api/properties/saved`       | Tenant/Landlord/Admin | Saved list                                     |
+| `POST /api/landlord/properties`   | Landlord/Admin        | Create listing                                 |
+| `GET/PUT/DELETE /api/landlord/properties/:id` | Landlord/Admin        | Manage own listing                             |
+| `GET /api/landlord/requests`      | Landlord/Admin        | Incoming requests                              |
+| `PATCH /api/landlord/requests/:id`  | Landlord/Admin        | Approve/reject/complete                        |
+| `POST /api/rentals`               | Tenant/Admin          | Submit rental request                          |
+| `GET /api/rentals`, `/api/rentals/:id` | Tenant/Admin          | Own requests                                   |
+| `POST /api/payments/create`       | Tenant/Admin          | Start Stripe Checkout                          |
+| `POST /api/payments/confirm`      | Stripe webhook        | Confirm payment                                |
+| `POST /api/payments/verify`       | Tenant/Admin          | Verify from success page                       |
+| `GET /api/payments`               | Tenant/Admin          | Payment history                                |
+| `POST /api/reviews`               | Tenant/Admin          | Submit review                                  |
+| `POST /api/uploads/images`        | Landlord/Admin        | Upload property images to Cloudinary           |
+| `GET/PATCH /api/admin/users`, `/api/admin/users/:id` | Admin                 | User management                                |
+| `GET/PATCH/DELETE /api/admin/properties*` | Admin                 | Property moderation                            |
+| `GET /api/admin/rentals`          | Admin                 | All rental requests                            |
 
----
+--- 
 
-## Known Gotchas
+## Known Gotchas ⚠️
 
-- **Cross-origin cookies**: see [Cross-Origin Setup](#cross-origin-setup-important) — this is the #1 source of "401 on client dashboard pages but works fine server-side" bugs.
+- **Cross-origin cookies**: see [Cross-Origin Setup](#cross-origin-setup-important) — this is the #1 source of `401` on client dashboard pages but works fine server-side bugs.
 - **`apiClient` must stay environment-aware**: don't revert `service/client.ts` to a single hardcoded backend URL, or public pages will fail to statically generate at build time (`Failed to parse URL from /api/...`).
 - **JWT expiry ordering**: access token expiry must be shorter than refresh token expiry, matching the cookie `maxAge` values set in `LoginActions.ts`.
 - **`STRIPE_WEBHOOK_SECRET`**: must not have leading/trailing whitespace — Stripe's signature check is exact.
 - **Next.js rewrites don't run at build time**: any server-side code that needs `/api/*` during static generation must use an absolute backend URL, not a relative rewrite path.
+
